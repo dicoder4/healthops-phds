@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <link rel="stylesheet" href="/css/reminders.css"> <!-- Link to an external CSS file -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Reminders</title>
+</head>
+<body>
+  <header id="masthead" class="site-header header-at-top">
+    <div class="container site-header__container">
+        <!-- Navigation Menu -->
+        <div class="site-header__menu">
+            <nav id="site-navigation" class="main-navigation">
+                <div class="menu-primary-navigation-container">
+                    <ul id="primary-menu" class="menu">
+                        <li class="menu-item"><a href="/homePage">Home</a></li>
+                        <li class="menu-item"><a href="/index">Find My Condition</a></li>
+                        <li class="menu-item"><a href="/health-metrics">Heath Metrics</a></li>
+                        <li class="menu-item"><a href="/fitnessLogs">Fitness Logs</a></li>
+                        <li class="menu-item"><a href="/reminders">Reminders</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <div class="bg-overlay"></div> <!-- Overlay element -->
+    <img src="/images/bluerem.jpg" class="bgg" alt="Background">
+  <div class="container">  
+  <h1>Your Reminders</h1>
+
+  <% if (!reminders || reminders.length === 0) { %>
+    <p>No reminders yet. Start adding one to stay on track!</p>
+  <% } else { %>
+    <ul id="reminders">
+      <% reminders.forEach(reminder => { %>
+        <li>
+          <% if (reminder.completed) { %>
+            <span style="text-decoration: line-through;">
+              <%= reminder.text %> at <%= reminder.time %>
+            </span>
+          <% } else { %>
+            <span>
+              <%= reminder.text %> at <%= reminder.time %>
+            </span>
+            <form class="button" action="/reminders/complete/<%= reminder._id %>" method="POST" style="display:inline;">
+              <button class="tick" type="submit">✔</button>
+            </form>
+          <% } %>
+  
+          <!-- Always display the Delete Reminder button -->
+          <form method="POST" class="button" action="/reminders/delete">
+            <input type="hidden" name="reminderId" value="<%= reminder._id %>" />
+            <button type="submit">
+              Delete 
+              <% if (reminder.calendarEventId) { %>
+              <% } %>
+            </button>
+          </form>
+        </li>
+      <% }) %>
+      
+    </ul>
+    <!-- Button that links to Google Calendar -->
+    <button class="calendar-button">
+      <a href="https://calendar.google.com" target="_blank">Delete from Google Calendar</a>
+    </button>
+  <% } %>
+  
+
+  <script>
+    async function deleteReminder(reminderId, calendarEventId) {
+      try {
+        const response = await fetch('/delete-reminder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reminderId, calendarEventId }),
+        });
+
+        if (response.ok) {
+          alert('Reminder deleted successfully!');
+          location.reload(); // Reload the page to reflect changes
+        } else {
+          const errorMessage = await response.text();
+          alert(`Error: ${errorMessage}`);
+        }
+      } catch (error) {
+        console.error('Error deleting reminder:', error.message);
+        alert('An error occurred. Please try again.');
+      }
+    }
+  </script>
+
+  <h2>Add a Reminder</h2>
+  <form class="rem" action="/reminders/add" method="POST">
+    <label for="text">Reminder Text:</label>
+    <input type="text" id="text" name="text" required>
+    <label for="time">Reminder Time:</label>
+    <input type="time" id="time" name="time" required>
+    <label>
+      <input type="checkbox" name="syncToCalendar"> Sync to Google Calendar
+    </label>
+    <button type="submit">Add Reminder</button>
+  </form>
+
+  <% if (googleCalendarConnected) { %>
+    <!-- Embed Google Calendar only if connected -->
+    <h2>Your Google Calendar</h2>
+    <div id="full-calendar"></div>
+
+
+    <h2>Your Upcoming Google Calendar Events</h2>
+    <!-- Replace your existing googleCalendarEvents section with this -->
+    <style>
+      .event-list {
+        list-style: none;
+        padding: 0;
+      }
+      
+      .event-item {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);  /* Creates 3 equal columns */
+        gap: 60px;  /* Equal spacing between columns */
+        margin: 10px 0;
+        font-family: 'Inter', sans-serif;
+        max-width: 800px;  /* Adjust this value based on your needs */
+      }
+      
+      .event-name {
+        font-weight: bold;
+      }
+      
+      .event-date, .event-time {
+        text-align: left;
+      }
+      </style>
+      
+      <% if (googleCalendarEvents.length > 0) { %>
+        <ul class="event-list" id="google-calendar-events">
+          <% googleCalendarEvents.forEach(event => { %>
+            <li class="event-item">
+              <span class="event-name"><%= event.summary %></span>
+              <span class="event-datetime" 
+                    data-start-date="<%= event.start.dateTime || event.start.date %>" 
+                    data-end-date="<%= event.end.dateTime || event.end.date %>">
+              </span>
+            </li>
+          <% }) %>
+        </ul>
+    <% } else { %>
+      <p>No upcoming events in your Google Calendar.</p>
+    <% } %>
+  <% } else { %>
+    <p>Your Google Calendar is not connected. <a href="/auth/google">Connect Google Calendar</a></p>
+  <% } %>
+<br><br>
+  <script>
+    // Helper function to format the date string
+
+// Function to format event date range (start and end dates)
+function formatEventDateRange(startDate, endDate) {
+  // Handle cases where dates might be undefined or null
+  if (!startDate) {
+    console.error('Start date is required');
+    return 'Date not available';
+  }
+
+  const formattedStartDate = formatDate(startDate);
+  const formattedEndDate = endDate ? formatDate(endDate) : formattedStartDate;
+  return `${formattedStartDate} to ${formattedEndDate}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const eventItems = document.querySelectorAll('#google-calendar-events li');
+  
+  eventItems.forEach(item => {
+    try {
+      const dateSpan = item.querySelector('.event-datetime');
+      
+      if (dateSpan) {
+        const startDate = dateSpan.dataset.startDate;
+        const endDate = dateSpan.dataset.endDate;
+        
+        if (startDate) {
+          const {date, startTime, endTime} = formatDateAndTime(startDate, endDate);
+          // Replace the datetime span with two separate spans
+          dateSpan.outerHTML = `
+            <span class="event-date">${date}</span>
+            <span class="event-time">${startTime} to ${endTime}</span>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('Error formatting event:', error);
+    }
+  });
+});
+
+function formatDateAndTime(startDateString, endDateString) {
+  const startDate = new Date(startDateString);
+  const endDate = endDateString ? new Date(endDateString) : startDate;
+
+  if (isNaN(startDate.getTime())) {
+    console.error('Invalid start date:', startDateString);
+    return {
+      date: 'Invalid date',
+      startTime: 'Invalid time',
+      endTime: 'Invalid time'
+    };
+  }
+
+  const day = String(startDate.getDate()).padStart(2, '0');
+  const month = String(startDate.getMonth() + 1).padStart(2, '0');
+  const year = String(startDate.getFullYear()).padStart(2, '0');
+  
+  const startHour = String(startDate.getHours()).padStart(2, '0');
+  const startMinute = String(startDate.getMinutes()).padStart(2, '0');
+  
+  const endHour = String(endDate.getHours()).padStart(2, '0');
+  const endMinute = String(endDate.getMinutes()).padStart(2, '0');
+
+  return {
+    date: `${day}/${month}/${year}`,
+    startTime: `${startHour}:${startMinute}`,
+    endTime: `${endHour}:${endMinute}`
+  };
+}
+
+
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('full-calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: async function (fetchInfo, successCallback, failureCallback) {
+          try {
+            const response = await fetch('/google-calendar-events');
+            const events = await response.json();
+
+            // Transform Google Calendar events to FullCalendar format
+            const formattedEvents = events.map(event => ({
+              title: event.summary,
+              start: event.start.dateTime || event.start.date,
+              end: event.end.dateTime || event.end.date,
+            }));
+
+            successCallback(formattedEvents);
+          } catch (error) {
+            console.error('Error fetching events for FullCalendar:', error);
+            failureCallback(error);
+          }
+        },
+      });
+
+      calendar.render();
+    });
+
+// Helper function to extract dates from event string
+function extractDatesFromEvent(dateRange) {
+  try {
+    // Assuming dateRange is in a parseable format
+    const dates = dateRange.split(' to ');
+    return {
+      start: new Date(dates[0]),
+      end: dates[1] ? new Date(dates[1]) : null
+    };
+  } catch (error) {
+    console.error('Error extracting dates:', error);
+    return null;
+  }
+}
+
+
+  </script>
+
+  <script>
+    async function fetchGoogleCalendarEvents() {
+      try {
+        const response = await fetch('/google-calendar-events');
+        const events = await response.json();
+
+        // Display events in your calendar
+        events.forEach(event => {
+          console.log(event);
+          const eventElement = document.createElement('div');
+          eventElement.innerHTML = `<strong>${event.summary}</strong> (${event.start.dateTime || event.start.date})`;
+          document.getElementById('calendar-events').appendChild(eventElement);
+        });
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    }
+
+    // Call the function when the page loads
+    document.addEventListener('DOMContentLoaded', fetchGoogleCalendarEvents);
+  </script>
+
+</div>
+</body>
+
+
+</html>

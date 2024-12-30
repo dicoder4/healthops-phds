@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="/css/register.css">
+</head>
+<body>
+  <!-- Background Image -->
+  <img src="images/bg3.jpg" class="bg" alt="Background">
+
+  <!-- Falling Leaves -->
+  <div class="leaves">
+    <div><img src="/images/leaf_01.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_03.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_01.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_04.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_01.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_01.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_03.png" alt="Leaf"></div>
+    <div><img src="/images/leaf_04.png" alt="Leaf"></div>
+  </div>
+
+  <!-- Registration Form -->
+  <div class="register">
+    <h2>Register</h2>
+    <form action="/register" method="post">
+      <div class="inputBox">
+        <input type="text" name="username" placeholder="Username" required>
+      </div>
+      <div class="inputBox">
+        <input type="password" name="password" placeholder="Password" required>
+      </div>
+      <div class="inputBox">
+        <button id="btn" type="submit">Register</button>
+      </div>
+    </form>
+    <!-- Display error message if it exists -->
+    <% if (message) { %>
+      <p style="color: red;"><%= message %></p>
+    <% } %>
+  </div>
+</body>
+</html>
