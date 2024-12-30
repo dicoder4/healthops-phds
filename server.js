@@ -37,10 +37,12 @@ app.use(session({
 }));
 app.use(flash());
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/health_checker')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err.message));
+
+// Connect to MongoDB using Mongoose
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch(err => console.error('Could not connect to MongoDB', err));
+
 
 // Middlewares
 app.use(express.static(path.join(__dirname, 'public')));
