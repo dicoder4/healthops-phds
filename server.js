@@ -650,10 +650,9 @@ function categorizeRoutine(currentWeight, idealWeight) {
     return 'normal';
   }
 }
-
 app.post('/update-goals', async (req, res) => {
-  const { currentWeight, height, age, idealWeight,gender } = req.body;
-  console.log(req.body);  // Log to see if data is being received
+  const { currentWeight, height, age, idealWeight, gender } = req.body;
+  console.log(req.body); // Log to see if data is being received
 
   const username = req.session.username;
 
@@ -663,8 +662,17 @@ app.post('/update-goals', async (req, res) => {
 
   const user = await User.findOne({ username });
   if (user) {
-    // Calculate BMR and calorie goal here
-    const bmr = 10 * currentWeight + 6.25 * height - 5 * age + 5; // Example BMR formula
+    // Calculate BMR and calorie goal based on gender
+    let bmr;
+    if (gender === 'male') {
+      bmr = 10 * currentWeight + 6.25 * height - 5 * age + 5;
+    } else if (gender === 'female') {
+      bmr = 10 * currentWeight + 6.25 * height - 5 * age - 161;
+    } else {
+      // For 'others', use a neutral constant or handle it differently
+      bmr = 10 * currentWeight + 6.25 * height - 5 * age;
+    }
+
     const calorieGoal = bmr * 1.2; // Sedentary activity multiplier
 
     // Assign the routine based on weight difference
@@ -677,10 +685,9 @@ app.post('/update-goals', async (req, res) => {
     user.idealWeight = idealWeight;
     user.calorieGoal = calorieGoal;
     user.exerciseRoutine = routine;
-    user.gender = gender; 
-     // Assign the routine here
+    user.gender = gender;
 
-    console.log(user);  // Log the updated user object before saving
+    console.log(user); // Log the updated user object before saving
 
     // Save the updated user data
     await user.save();
