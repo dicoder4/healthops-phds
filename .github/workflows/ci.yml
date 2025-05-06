@@ -2,20 +2,40 @@ name: CI Pipeline
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   ci-check:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
 
-      - name: Say hello!
-        run: echo "CI pipeline is working – no code yet!"
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Run linting (if you have a linter like ESLint)
+      - name: Run ESLint
+        run: npm run lint
+
+      # Step 5: Run tests (assuming you have Jest or another testing tool configured)
+      - name: Run tests
+        run: npm test
+
+      # Step 6: Build the app (optional)
+      - name: Build app
+        run: npm run build
+
