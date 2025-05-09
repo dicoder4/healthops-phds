@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Health Reminder</title>
+</head>
+<body>
+    
+    <header id="masthead" class="site-header header-at-top">
+        <div class="container site-header__container">
+            <!-- Navigation Menu -->
+            <div class="site-header__menu">
+                <nav id="site-navigation" class="main-navigation">
+                    <div class="menu-primary-navigation-container">
+                        <ul id="primary-menu" class="menu">
+                            <li class="menu-item"><a href="/homePage">Home</a></li>
+                            <li class="menu-item"><a href="/index">Find My Condition</a></li>
+                            <li class="menu-item"><a href="/health-metrics">Health Metrics</a></li>
+                            <li class="menu-item"><a href="/fitnessLogs">Fitness Logs</a></li>
+                            <li class="menu-item"><a href="/reminders">Reminders</a></li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <div class="bg-overlay"></div> <!-- Overlay element -->
+    <img src="/images/algae.png" class="bg" alt="Background">
+
+    <div class="container">
+        <h1>Enter Your Symptoms</h1>
+        <form action="/submit-symptoms" method="POST">
+            <div id="symptoms-container">
+                <i class="fa fa-search"></i>  <!-- Magnifying glass icon -->
+                <input type="text" id="symptoms" placeholder="Start typing symptoms...">
+            </div>
+            
+
+            <!-- Hidden input to send the selected symptoms to the server -->
+            <input type="hidden" id="selected-symptoms" name="symptoms">
+
+            <!-- Suggestions Dropdown -->
+            <div class="suggestions" id="suggestions-list"></div>
+
+            <!-- Selected Symptoms Bubbles -->
+            <div class="symptom-bubbles" id="symptom-bubbles"></div>
+            <div></div>  <br><br>
+
+            <button type="submit" onclick="return validateForm()">Search</button>
+        </form>
+    </div>
+
+    <script>
+        const predefinedSymptoms = ['Fever', 'Cough', 'Headache', 'Fatigue', 'Shortness of breath', 'Sore throat', 'Runny nose'];
+
+        let selectedSymptoms = [];
+
+        // Function to add a symptom (converting to lowercase)
+        function addSymptom(symptom) {
+            const lowerCaseSymptom = symptom.toLowerCase(); // Convert symptom to lowercase
+            if (!selectedSymptoms.includes(lowerCaseSymptom)) {
+                selectedSymptoms.push(lowerCaseSymptom);
+                updateBubbles();
+            }
+        }
+
+        // Function to remove a symptom (converting to lowercase)
+        function removeSymptom(symptom) {
+            const lowerCaseSymptom = symptom.toLowerCase(); // Convert symptom to lowercase
+            selectedSymptoms = selectedSymptoms.filter(s => s !== lowerCaseSymptom);
+            updateBubbles();
+        }
+
+        // Update the symptom bubbles UI
+        function updateBubbles() {
+            const bubblesContainer = document.getElementById('symptom-bubbles');
+            bubblesContainer.innerHTML = '';
+            selectedSymptoms.forEach(symptom => {
+                const bubble = document.createElement('div');
+                bubble.className = 'symptom-bubble';
+                bubble.innerHTML = `${symptom} <span class="delete" onclick="removeSymptom('${symptom}')">⌧︎</span>`;
+                bubblesContainer.appendChild(bubble);
+            });
+            document.getElementById('selected-symptoms').value = JSON.stringify(selectedSymptoms); // Send the symptoms in JSON format
+        }
+
+        // Filter symptoms from predefined list
+        function filterSymptoms(input) {
+            const suggestionsList = document.getElementById('suggestions-list');
+            suggestionsList.innerHTML = '';
+            if (input) {
+                const filteredSymptoms = predefinedSymptoms.filter(symptom =>
+                    symptom.toLowerCase().includes(input.toLowerCase())
+                );
+                filteredSymptoms.forEach(symptom => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.textContent = symptom;
+                    suggestionItem.onclick = () => {
+                        addSymptom(symptom);
+                        document.getElementById('symptoms').value = '';
+                        suggestionsList.innerHTML = '';
+                    };
+                    suggestionsList.appendChild(suggestionItem);
+                });
+            }
+        }
+
+        document.getElementById('symptoms').addEventListener('input', function() {
+            filterSymptoms(this.value);
+        });
+
+        // Form validation to ensure at least one symptom is selected
+        function validateForm() {
+            if (selectedSymptoms.length === 0) {
+                alert("Please select at least one symptom.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+    <!-- Rising Bubbles -->
+<div class="bubbles">
+    <div><img src="/images/bubble1.png" alt="Leaf"></div>
+    <div><img src="/images/bubble3.png" alt="Leaf"></div>
+    <div><img src="/images/bubble1.png" alt="Leaf"></div>
+    <div><img src="/images/bubble4.png" alt="Leaf"></div>
+    <div><img src="/images/bubble1.png" alt="Leaf"></div>
+    <div><img src="/images/bubble1.png" alt="Leaf"></div>
+    <div><img src="/images/bubble3.png" alt="Leaf"></div>
+    <div><img src="/images/bubble4.png" alt="Leaf"></div>
+  </div>
+  
+<!-- Custom Alert Div -->
+<div id="custom-alert" class="custom-alert" style="display:none;">
+    <button class="close-alert" onclick="closeAlert()">×</button> <!-- Close Button -->
+    <p>ִֶָ⋆.˚🦋༘⋆</p> <!-- Bunny Decoration -->
+    <span id="alert-message"></span> <!-- Placeholder for the alert message -->
+</div>
+
+
+
+</body>
+</html>

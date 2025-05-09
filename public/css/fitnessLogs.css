@@ -1,0 +1,129 @@
+/* General Styles */
+/* For Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 20px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f69f2ebe; /* Color of the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #644d00a6; /* Color of the thumb (the draggable part) */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4f3906bd; /* Thumb color on hover */
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  background-image: radial-gradient(at 40% 20%, rgb(212 226 76 / 84%) 0px, #a1909000 50%), radial-gradient(at 80% 0%, rgb(69 204 50) 0px, #fcfcfc40 50%), radial-gradient(at 0% 50%, rgb(65 186 41) 0px, #ff8b00d6 50%);
+  color: var(--text-color);
+  font-size: 18px;;
+}
+
+.container {
+  color: var(--text-color);
+  max-width: 1300px;
+  margin: 0 auto;
+  color: #333;
+}
+
+/* Header */
+.site-header {
+  display: flex;
+  background-color: #006400; /* Dark Green Background */
+  padding: 16.4px 0; /* Reduced padding to shift the content upwards */
+  color: white;
+  font-size: 14px; /* Reduced font size */
+
+}
+
+/* Header container */
+.site-header__container {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 70px; /* Reduced padding */
+  width: 100%;
+  padding-left: 330px; /* Add this for left padding */
+  padding-top: 2px; /* Slightly increases top spacing for the entire header */
+}
+
+/* Adjust logo and site branding */
+.site-header__container .site-branding {
+  flex-shrink: 0; /* Prevents logo from shrinking */
+}
+
+/* Adjust text height */
+.site-header__container h1,
+.site-header__container .site-branding {
+  line-height: 2; /* Reduces line height */
+}
+
+/* Menu links */
+.menu-item a {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  margin: 0 20px;
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+
+.menu-item a:hover {
+  background-color: #004d0000;
+  color: white;
+}
+
+/* Mobile Menu Styling */
+.site-header__menu-toggle {
+  display: none; /* Hide mobile menu toggle by default */
+}
+
+@media (max-width: 768px) {
+  .site-header__container {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  .site-header__menu {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  .site-header__menu-toggle {
+      display: block; /* Show the mobile menu toggle */
+  }
+}
+
+.site-branding img {
+  max-width: 150px;
+}
+
+.main-navigation ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 15px;
+}
+
+.main-navigation ul li a {
+  font-family: Arial, sans-serif;
+    font-size: 18px;
+  text-decoration: none;
+  color: #a7cc92;
+  font-weight: bold;
+  transition: all 0.3s ease-out;
+}
+
+.main-navigation ul li a:hover {
+  color: #9c623b;
+  font-size: 0.9em;
+}
+

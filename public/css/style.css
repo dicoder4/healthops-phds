@@ -1,0 +1,413 @@
+
+/* For Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 20px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f69f2ebe; /* Color of the track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #644d00a6; /* Color of the thumb (the draggable part) */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4f3906bd; /* Thumb color on hover */
+}
+
+/* General Body Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  overflow-y: scroll; /* Keeps the scrollbar visible even when not needed */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container for the content */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Header */
+.site-header {
+  display: flex;
+  background-color: #006400; /* Dark Green Background */
+  padding: 20.5px 0; /* Reduced padding to shift the content upwards */
+  color: white;
+  font-size: 14px; /* Reduced font size */
+  width: 100%;
+  position: fixed; /* Keeps the header fixed at the top */
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+/* Header container */
+.site-header__container {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 70px; /* Reduced padding */
+  width: 100%;
+  padding-left: 240px; /* Add this for left padding */
+  padding-top: 5px;
+}
+
+/* Adjust logo and site branding */
+.site-header__container .site-branding {
+  flex-shrink: 0; /* Prevents logo from shrinking */
+}
+
+/* Adjust text height */
+.site-header__container h1,
+.site-header__container .site-branding {
+  line-height: 1; /* Reduces line height */
+}
+
+/* Menu links */
+.menu-item a {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+  margin: 0 20px;
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+
+.menu-item a:hover {
+  background-color: #004d0000;
+  color: white;
+}
+
+/* Mobile Menu Styling */
+.site-header__menu-toggle {
+  display: none; /* Hide mobile menu toggle by default */
+}
+
+@media (max-width: 768px) {
+  .site-header__container {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  .site-header__menu {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  .site-header__menu-toggle {
+      display: block; /* Show the mobile menu toggle */
+  }
+}
+
+.site-branding img {
+  max-width: 150px;
+}
+
+.main-navigation ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 15px;
+}
+
+.main-navigation ul li a {
+  text-decoration: none;
+  color: #a7cc92;
+  font-weight: bold;
+  transition: all 0.3s ease-out;
+}
+
+.main-navigation ul li a:hover {
+  color: #9c623b;
+  font-size: 17px;
+}
+
+/* Styling for the symptom bubbles */
+.symptom-bubbles {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.symptom-bubble {
+  background-color: rgb(172, 72, 22);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.symptom-bubble .delete {
+  margin-left: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Styling for the suggestion dropdown */
+.suggestions {
+  border: 1px solid #cccccc00;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0);
+  width: 80%;
+  z-index: 10;
+}
+.suggestion-item {
+  padding: 8px;
+  cursor: pointer;
+}
+.suggestion-item:hover {
+  background-color: #0f59199d;
+  color: #ffffff;
+}
+
+/* Form and Input Styles */
+form {
+  text-align: center;
+  margin-top: 50px; /* Closer to the input */
+  position: relative;
+}
+
+/* Centering the "Enter Your Symptoms" Text */
+h1 {
+  margin-bottom: 10px; /* Closer to the input field */
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Input with Magnifying Glass Icon */
+#symptoms-container {
+  position: relative;
+  width: 100%; /* Ensure full width of the container */
+  max-width: 600px; /* Increased the maximum width to make the bar longer */
+  margin: 0 auto; /* Center the input field */
+  margin-left: -30px; /* Shift the container slightly to the left */
+}
+
+#symptoms {
+  padding: 12px 15px 12px 40px; /* Add space for the icon */
+  font-size: 16px;
+  border-radius: 25px;
+  border: 2px solid  #c7c7c7;
+  width: 100%; /* Make the input take full width */
+  background-color: rgba(138, 143, 46, 0.774);
+  background-position: 10px center; /* Position for the icon */
+  background-repeat: no-repeat;
+  background-size: 20px;
+  box-shadow: 0 0 15px rgba(60, 60, 60, 0.43); /* Glow effect */
+}
+
+/* Add glow effect on focus */
+#symptoms:focus {
+  border-color: #ffffff; /* Change border color when focused */
+  outline: none; /* Remove the default outline */
+}
+
+
+#symptoms::placeholder {
+  color: #aaa;
+  padding-left: 30px; /* Add space to prevent overlap with icon */
+}
+
+/* Magnifying glass icon with specific placement */
+#symptoms-container .fa-search {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ffffff;
+  font-size: 18px;
+}
+
+button {
+  padding: 10px 10px;
+  font-size: 16px;
+  margin-top: 98px;
+  border: 1.8px solid #131313cc;
+  background-color: #006400;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 50%; /* Full width button */
+  max-width: 300px; /* Max width for better appearance */
+  transform: translateX(-5%); /* Shift the button slightly to the left */
+  text-align: center; /* Ensure the text remains centered */
+  display: block; /* Ensures button stays centered horizontally with margins */
+  margin-left: auto; /* Align center horizontally */
+  margin-right: auto; /* Align center horizontally */
+}
+
+button:hover {
+  background-color: #004d00;
+}
+
+/* Bubbles animation container */
+.bubbles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: -1; /* Ensures it's behind the content */
+  display: flex;
+  justify-content: space-evenly;
+  align-items: flex-end; /* Align at the bottom */
+}
+
+/* Individual bubbles */
+.bubbles div {
+  position: absolute;
+  opacity: 0; /* Bubbles start as invisible */
+  bottom: -10%; /* Start below the screen */
+  animation: rise 15s linear infinite; /* Rising animation */
+}
+
+/* Customizing bubble positions and delays */
+.bubbles div:nth-child(1) {
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.bubbles div:nth-child(2) {
+  left: 30%;
+  animation-delay: 3s;
+}
+
+.bubbles div:nth-child(3) {
+  left: 50%;
+  animation-delay: 5s;
+}
+
+.bubbles div:nth-child(4) {
+  left: 70%;
+  animation-delay: 2s;
+}
+
+.bubbles div:nth-child(5) {
+  left: 90%;
+  animation-delay: 4s;
+}
+
+.bubbles div:nth-child(6) {
+  left: 20%;
+  animation-delay: 6s;
+}
+
+.bubbles div:nth-child(7) {
+  left: 40%;
+  animation-delay: 7s;
+}
+
+.bubbles div:nth-child(8) {
+  left: 60%;
+  animation-delay: 8s;
+}
+
+/* Keyframes for Rising Bubbles */
+@keyframes rise {
+  0% {
+    opacity: 0;
+    bottom: -10%; /* Start below the screen */
+    transform: translateX(0) scale(3); /* Start slightly smaller */
+  }
+  10% {
+    opacity: 1; /* Fade in */
+  }
+  100% {
+    opacity: 1; /* Stay visible during rise */
+    bottom: 110%; /* Move past the top of the screen */
+    transform: translateX(-20px) scale(4); /* Slight wobble and size increase */
+  }
+}
+
+/* Optional: Styling for the bubbles */
+.bubbles div img {
+  width: 30px; /* Size of the bubble */
+  height: 30px;
+  object-fit: contain; /* Ensures proper scaling */
+  border-radius: 50%; /* Makes it circular */
+  background-color: rgba(135, 207, 235, 0); /* Light blue for plain bubbles */
+}
+
+.bg-overlay {
+  position: fixed;  /* Use fixed to keep it in place even while scrolling */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  background: rgba(212, 209, 59, 0.681); /* Light transparent overlay */
+  z-index: 0; /* Place overlay above the background */
+  pointer-events: none; /* Ensures overlay doesn't interfere with interactions */
+}
+
+
+ /* Background Image */
+ .bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%); /* Center it horizontally */
+  background-color: #bb8246e8; /* Green for success */
+  color: rgb(0, 0, 0);
+  padding: 8px 5px;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: none; /* Hidden by default */
+  font-size: 16px;
+  opacity: 1; /* Fully visible */
+  text-align: center; /* Center align text and inline elements */
+  border: 2px solid rgb(82, 34, 34); /* White border around the alert box */
+  line-height: 1; /* Reduce the space between lines of text */
+}
+
+.custom-alert.error {
+  background-color: #f44336; /* Red for error */
+}
+
+/* Close button style */
+.close-alert {
+  position: absolute;
+  top: 5px;  /* Distance from the top of the alert */
+  right: 10px; /* Distance from the right of the alert */
+  color: rgb(82, 34, 34);
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.close-alert:hover {
+  color: #ff0000; /* Optional: change color on hover */
+}
+
+.custom-alert.error {
+  background-color: #f44336; /* Red for error */
+}
