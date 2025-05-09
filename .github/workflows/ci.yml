@@ -1,28 +1,36 @@
-name: CI Pipeline
+name: MERN CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   ci-check:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
-      - name: Set up Node.js
+      - name: 🟢 Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # Step 3: Install dependencies
-      - name: Install dependencies
+      - name: 📦 Install backend dependencies
         run: npm install
+        working-directory: ./
+
+      - name: 📦 Install frontend dependencies
+        run: npm install
+        working-directory: ./client
+
+      - name: 🏗️ Build React frontend
+        run: npm run build
+        working-directory: ./client
+
+      - name: ✅ Run backend tests
+        run: npm test
+        working-directory: ./
