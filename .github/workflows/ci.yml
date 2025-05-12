@@ -1,4 +1,4 @@
-name: HealthOps Backend CI Pipeline
+name: HealthOps MERN CI Pipeline
 
 on:
   push:
@@ -7,9 +7,39 @@ on:
     branches: [main]
 
 jobs:
-  install-and-test:
-    name: Install & Test Backend
+  install-audit:
+    name: Install & Audit
     runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 📦 Install Backend Dependencies
+        run: npm ci
+        working-directory: ./
+
+      - name: 📦 Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./client
+
+      - name: 🔒 Audit Backend
+        run: npm audit --audit-level=moderate || true
+        working-directory: ./
+
+      - name: 🔒 Audit Frontend
+        run: npm audit --audit-level=moderate || true
+        working-directory: ./client
+
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: install-audit
 
     services:
       mongo:
@@ -34,10 +64,24 @@ jobs:
         with:
           node-version: 18
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+      - name: 📦 Install Backend
+        run: npm install
         working-directory: ./
+
+      - name: 📦 Install Frontend
+        run: npm install
+        working-directory: ./client
+
+      - name: 🏗️ Build Frontend
+        run: npm run build
+        working-directory: ./client
 
       - name: 🧪 Run Backend Tests (ESM Compatible)
         run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests --testEnvironment=node --testTimeout=10000
         working-directory: ./
+
+
+
+
+      - name: ✅ Confirm React Built
+        run: test -f ./client/build/index.html
