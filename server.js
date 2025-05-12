@@ -19,12 +19,10 @@ const oauth2Client = new google.auth.OAuth2(
   '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',
   'http://localhost:4000/oauth2callback'
 );
-
 import { fileURLToPath } from 'url';
-
-// Use `fileURLToPath` to get the current directory path in ES module
+import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(express.json());
@@ -1002,6 +1000,10 @@ app.post('/reminders/delete', async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app; // Export app for testing

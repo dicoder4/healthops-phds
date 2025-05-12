@@ -1,10 +1,5 @@
 export default {
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.jsx?$': 'babel-jest',
-  },
-  extensionsToTreatAsEsm: ['.jsx'], // ❌ DO NOT include '.js'
-  moduleNameMapper: {
-    '\\.(css|less)$': 'identity-obj-proxy',
-  },
+  transform: {},
+  testMatch: ['**/tests/**/*.test.js'], // Only run backend tests
+  testEnvironment: 'node'
 };
