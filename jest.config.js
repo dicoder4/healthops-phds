@@ -1,5 +1,6 @@
 export default {
-  transform: {},
-  testMatch: ['**/tests/**/*.test.js'], // Only run backend tests
-  testEnvironment: 'node'
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+  },
+  testEnvironment: 'node',
 };
