@@ -1,9 +1,9 @@
 export default {
+  testEnvironment: 'jsdom', // use 'node' if only backend; 'jsdom' needed for React
   transform: {
-    '^.+\\.[jt]sx?$': 'babel-jest',
+    '^.+\\.jsx?$': 'babel-jest',
   },
   extensionsToTreatAsEsm: ['.js', '.jsx'],
-  testEnvironment: 'jsdom',
   moduleFileExtensions: ['js', 'jsx'],
-  roots: ['<rootDir>/tests', '<rootDir>/client'],
+  testMatch: ['**/tests/**/*.test.js', '**/src/**/*.test.jsx'],
 };
