@@ -76,12 +76,17 @@ jobs:
         run: npm run build
         working-directory: ./client
 
+      - name: 🔍 Run ESLint
+        run: npm run lint
+        working-directory: ./
+
       - name: 🧪 Run Backend Tests (ESM Compatible)
         run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests --testEnvironment=node --testTimeout=10000
         working-directory: ./
 
-
-
+      - name: 🐳 Build Docker Image
+        run: docker build -t healthops-backend .
+        working-directory: ./
 
       - name: ✅ Confirm React Built
         run: test -f ./client/build/index.html
