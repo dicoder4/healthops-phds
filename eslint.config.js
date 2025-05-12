@@ -4,6 +4,12 @@ import babelParser from '@babel/eslint-parser';
 
 export default [
   {
+    ignores: [
+      'node_modules/**',
+      'client/build/**',
+      'dist/**',
+      'public/vendor/**',
+    ],
     files: ['**/*.js', '**/*.jsx'],
     languageOptions: {
       parser: babelParser,
@@ -26,11 +32,11 @@ export default [
         module: 'readonly',
         require: 'readonly',
         global: 'readonly',
-        test: 'readonly', 
+        test: 'readonly',
         setTimeout: 'readonly',
         describe: 'readonly',
         it: 'readonly',
-        exports: 'readonly', 
+        exports: 'readonly',
         expect: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
