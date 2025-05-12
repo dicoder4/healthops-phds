@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import session from 'express-session';
 import bcrypt from 'bcrypt';
-import User from './models/user.js';
+import User from './models/User.js';
 import Disease from './models/disease.js';
 import Exercise from './models/exercise.js';  // Import the Exercise model
 import Food from './models/food.js';  // Import the Food model
