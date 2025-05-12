@@ -77,7 +77,7 @@ jobs:
         working-directory: ./client
 
       - name: 🔍 Run ESLint
-        run: npm run lint
+        run: npm run lint -- --ignore-path .eslintignore
         working-directory: ./
 
       - name: 🧪 Run Backend Tests (ESM Compatible)
