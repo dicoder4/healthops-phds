@@ -7,34 +7,51 @@ import Disease from './models/disease.js';
 import Exercise from './models/exercise.js';  // Import the Exercise model
 import Food from './models/food.js';  // Import the Food model
 import Review from './models/review.js'; // Add this to import the Review model
-import path from 'path';
 import flash from 'connect-flash';
 import moment from 'moment-timezone';
 import dotenv from 'dotenv';
 dotenv.config();
 import { google } from 'googleapis';
+// Serve React frontend for all other routes
+import path from 'path';
+const __dirname = path.resolve();
+
+
+import cors from 'cors';
 
 const oauth2Client = new google.auth.OAuth2(
-  '1028836907530-ur2r87e8gvqugvbpg2v94c6cs6qdfkir.apps.googleusercontent.com',
-  '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',
-  'http://localhost:4000/oauth2callback'
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
 );
+
 
 import { fileURLToPath } from 'url';
 
 // Use `fileURLToPath` to get the current directory path in ES module
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:3000', // or your frontend URL
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Session setup for user authentication
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'yourSecretKey',
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Make sure cookies are sent in production
+    maxAge: 60 * 60 * 1000, // Optional: set cookie expiration
+  }
 }));
+
 app.use(flash());
 
 
@@ -44,108 +61,107 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.error('Could not connect to MongoDB', err));
 
 
-// Middlewares
-app.use(express.static(path.join(__dirname, 'public')));
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+
 
 // Middleware to check if a user is logged in
 function checkAuth(req, res, next) {
   if (!req.session.userId) {
-    return res.redirect('/login');
+    return res.status(401).json({ message: 'Not logged in' });
   }
   next();
 }
 
-// Routes
+app.get('/auth/google', (req, res) => {
+  const scopes = ['https://www.googleapis.com/auth/calendar.events'];
+  const url = oauth2Client.generateAuthUrl({ access_type: 'offline', scope: scopes });
+  res.redirect(url);
+});
 
-// Registration route
-app.get('/register', (req, res) => {
-  res.render('register', { message: null });
+app.get('/oauth2callback', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).send('No authorization code');
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+
+    const user = await User.findById(req.session.userId);
+    user.googleAccessToken = tokens.access_token;
+    user.googleRefreshToken = tokens.refresh_token;
+    await user.save();
+
+    res.redirect('/reminders');
+  } catch (error) {
+    console.error('OAuth2 error:', error);
+    res.status(500).send('OAuth2 callback error');
+  }
 });
 
 
-app.post('/register', async (req, res) => {
+
+
+
+// Routes
+app.get('/api/current_user', (req, res) => {
+  if (req.session.userId) {
+    // Send back user info based on session data
+    User.findById(req.session.userId)
+      .then(user => res.json({ username: user.username, gmail: user.gmail, phNo: user.phNo }))
+      .catch(err => res.status(500).json({ message: 'Error fetching user.' }));
+  } else {
+    res.status(401).json({ message: 'Not logged in' });
+  }
+});
+
+
+
+// POST: Register
+app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   const saltRounds = 10;
 
   try {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-          return res.render('register', { message: 'Username already taken. Please try another.' });
-      }
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already taken. Please try another.' });
+    }
 
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const newUser = new User({ username, password: hashedPassword });
-      await newUser.save();
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const newUser = new User({ username, password: hashedPassword });
+    await newUser.save();
 
-      res.redirect('/login');  // Redirect to login after successful registration
+    res.status(201).json({ message: 'Registration successful' });
   } catch (error) {
-      console.error('Registration error:', error.message);
-      res.render('register', { message: 'An error occurred. Please try again.' });
+    console.error('Registration error:', error.message);
+    res.status(500).json({ message: 'An error occurred. Please try again.' });
   }
 });
 
 
 
 
-// Root route: Redirect based on user authentication status
-app.get('/', (req, res) => {
-  if (req.session.userId) {
-    // If the user is logged in, redirect to homePage
-    res.redirect('/homePage');
-  } else {
-    // If the user is not logged in, redirect to login
-    res.redirect('/login');
-  }
-});
-
-
-
-// Login route
-app.get('/login', (req, res) => {
-  const successMessage = req.flash('successMessage');
-  res.render('login', { message: successMessage });
-});
-
-
-
-
-
-// Session setup for user authentication
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, maxAge: 60000 },  // Session cookie settings
-}));
-
-app.use(flash());
-
-
-app.post('/login', async (req, res) => {
+// POST: Login
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-
   try {
-      const user = await User.findOne({ username });
-      if (!user) {
-          // If user is not found
-          return res.render('login', { message: 'Invalid username or password.' });
-      }
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid username or password.' });
+    }
 
-      const match = await bcrypt.compare(password, user.password);
-      if (match) {
-          // If login is successful, store session and redirect
-          req.session.userId = user._id;
-          req.session.username = user.username;
-          res.redirect('/homePage');
-      } else {
-          // If password doesn't match
-          return res.render('login', { message: 'Invalid username or password.' });
-      }
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: 'Invalid username or password.' });
+    }
+
+    req.session.userId = user._id;
+    req.session.username = user.username;
+
+    console.log('Session after login:', req.session); // Add a log here
+    res.json({ success: true });
   } catch (error) {
-      console.error('Login error:', error.message);
-      res.render('login', { message: 'Error logging in. Please try again.' });
+    console.error('Login error:', error.message);
+    res.status(500).json({ message: 'An error occurred. Please try again.' });
   }
 });
 
@@ -154,16 +170,21 @@ app.post('/login', async (req, res) => {
 
 
 
-// Logout route
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login');
+
+app.post('/api/users/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) return res.status(500).json({ message: 'Logout failed' });
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logged out' });
   });
 });
 
 
+
+
 // Updated homePage route
 app.get('/homePage', checkAuth, async (req, res) => {
+  console.log('Accessing homePage...');
   try {
     const username = req.session.username; // Retrieve username from session
     const user = await User.findOne({ username });
@@ -187,18 +208,24 @@ app.get('/homePage', checkAuth, async (req, res) => {
     const foods = await Food.find({ routine: user.exerciseRoutine });
 
     // Render the homepage with user data and reviews
-    res.render('homePage', {
-      username,
-      user,
-      avgWeight,
-      avgSteps,
-      avgHeartRate,
-      message,
-      reviews, // Pass reviews to the view
-      reminders,
-      exercises,
-      foods,
-    });
+res.json({
+  username,
+  userId: user._id,
+  reviews,
+  reminders,
+  exercises,
+  foods,
+  // ADD THIS 👇
+  user: {
+    dates: user.dates,
+    weight: user.weight,
+    steps: user.steps,
+    heartRate: user.heartRate
+  }
+});
+
+
+
   } catch (err) {
     console.error(err);
     res.status(500).send('Internal server error');
@@ -340,6 +367,22 @@ app.post('/reviews/:id/delete', checkAuth, async (req, res) => {
 
 
 
+// Get current user details
+app.get('/api/users/me', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const user = await User.findById(req.session.userId).select('gmail phNo');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ gmail: user.gmail || '', phNo: user.phNo || '' });
+  } catch (err) {
+    console.error('Fetch profile error:', err);
+    res.status(500).json({ message: 'Error fetching profile' });
+  }
+});
 
 
 
@@ -347,592 +390,356 @@ app.post('/reviews/:id/delete', checkAuth, async (req, res) => {
 
 
 // Route to handle updating user profile
-app.post('/update-profile', async (req, res) => {
+app.put('/api/users/update', async (req, res) => {
+  console.log('Session userId:', req.session.userId);
+  if (!req.session.userId) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
   const { gmail, phNo } = req.body;
-  const username = req.session.username; // Assuming the username is stored in the session
 
-  // Update user profile in the database
+  // Validate Gmail (basic format validation)
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.com$/;
+  if (!emailRegex.test(gmail)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  // Validate Phone Number (should be exactly 10 digits)
+  const phoneRegex = /^\d{10}$/;
+  if (!phoneRegex.test(phNo)) {
+    return res.status(400).json({ message: 'Invalid phone number format' });
+  }
+
   try {
-      const user = await User.findOne({ username: username });
-      if (user) {
-          user.gmail = gmail;
-          user.phNo = phNo;
-          await user.save();
-          res.json({ success: true });
-      } else {
-          res.status(404).json({ success: false, message: 'User not found' });
-      }
-  } catch (error) {
-      res.status(500).json({ success: false, message: 'Error updating profile' });
+    // Find the user by ID from session data
+    const user = await User.findById(req.session.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    user.gmail = gmail;
+    user.phNo = phNo;
+
+    // Save the updated user document
+    await user.save();
+
+    // Return success response
+    res.json({ message: 'Profile updated successfully!' });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ message: 'Error updating profile' });
   }
 });
 
 
-// Symptom input page (protected)
-app.get('/index', checkAuth, (req, res) => {
-  res.render('index'); // Your existing index.ejs view
-});
 
 
-// Submit symptoms route (protected)
-app.post('/submit-symptoms', async (req, res) => {
+
+// POST: Submit symptoms
+app.post('/api/submit-symptoms', async (req, res) => {
   try {
-      const rawSymptoms = req.body.symptoms;
+    const symptoms = req.body.symptoms;
 
-      // Log raw symptoms from the frontend
-      console.log('Received Symptoms:', rawSymptoms);
 
-      // Parse and convert the symptoms to lowercase
-      const symptoms = JSON.parse(rawSymptoms);
+    if (!Array.isArray(symptoms) || symptoms.length === 0) {
+      return res.status(400).json({
+        message: 'Invalid symptoms input. Please try again.',
+        diseases: []
+      });
+    }
 
-      // Log the parsed symptoms
-      console.log('Parsed Symptoms:', symptoms);
-
-      if (!Array.isArray(symptoms) || symptoms.length === 0) {
-          res.render('result', {
-              message: 'Invalid symptoms input. Please try again.',
-              diseases: [],
-          });
-          return;
+    const diseases = await Disease.find({
+      symptoms: {
+        $all: symptoms.map(symptom => symptom.toLowerCase())
       }
+    });
 
-      // Query diseases where all selected symptoms must be present
-      const diseases = await Disease.find({
-          symptoms: { 
-              $all: symptoms.map(symptom => symptom.toLowerCase()) // All selected symptoms should be present in the disease's symptom list
-          }
-      });
-
-      // Log the matched diseases
-      console.log('Matched Diseases:', diseases);
-
-      // Render results
-      res.render('result', {
-          diseases: diseases.map(disease => ({
-              disease: disease.disease,  // Make sure to use 'disease' here, based on your schema
-              symptoms: disease.symptoms,
-              description: disease.description,
-              medication: disease.medication
-          })),
-          message: diseases.length ? null : 'No diseases matched the provided symptoms.',
-      });
+    return res.json({
+      diseases: diseases.map(disease => ({
+        disease: disease.disease,
+        symptoms: disease.symptoms,
+        description: disease.description,
+        medication: disease.medication
+      })),
+      message: diseases.length ? null : 'No diseases matched the provided symptoms.'
+    });
   } catch (error) {
-      console.error('Error processing symptoms:', error.message);
-      res.status(500).render('result', {
-          message: 'An error occurred while processing your symptoms.',
-          diseases: [],
-      });
+    console.error('Error processing symptoms:', error.message);
+    return res.status(500).json({
+      message: 'An error occurred while processing your symptoms.',
+      diseases: []
+    });
   }
 });
 
-// API to fetch user metrics (for frontend dynamic rendering)
+// GET: API to fetch user metrics
 app.get('/api/metrics/:username', async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.get('/health-metrics', checkAuth, (req, res) => {
+
+app.get('/health-metrics/data', async (req, res) => {
   const username = req.session.username;
+  const user = await User.findOne({ username });
 
-  User.findOne({ username })
-  .then((user) => {
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
+  if (!user) return res.status(404).send('User not found');
 
-    // Safely handle empty or undefined arrays
-    const avgHeartRate = user.heartRate?.length ? 
-      user.heartRate.reduce((a, b) => a + b, 0) / user.heartRate.length : 0;
-    const avgSteps = user.steps?.length ? 
-      user.steps.reduce((a, b) => a + b, 0) / user.steps.length : 0;
-    const avgWeight = user.weight?.length ? 
-      user.weight.reduce((a, b) => a + b, 0) / user.weight.length : 0;
+  const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+  const avgHeartRate = avg(user.heartRate);
+  const avgSteps = avg(user.steps);
+  const avgWeight = avg(user.weight);
 
-    // Define messages based on comparison
-    const message = {
-      steps: user.steps?.length && user.steps[user.steps.length - 1] > avgSteps
-        ? `Wow, you've exceeded! Your average steps were ${avgSteps.toFixed(1)}.`
-        : `Your steps are ${user.steps?.[user.steps.length - 1] || 0} which is ${
-            user.steps?.[user.steps.length - 1] > avgSteps ? 'higher' : 'lower'
-          } than the average of ${avgSteps.toFixed(1)} steps.`,
-      weight: user.weight?.length && user.weight[user.weight.length - 1] > avgWeight
-        ? `Your weight is higher than your average of ${avgWeight.toFixed(1)} kg.`
-        : `Your weight is ${user.weight?.[user.weight.length - 1] || 0} kg, which is ${
-            user.weight?.[user.weight.length - 1] > avgWeight ? 'higher' : 'lower'
-          } than your average of ${avgWeight.toFixed(1)} kg.`,
-      heartRate: user.heartRate?.length && user.heartRate[user.heartRate.length - 1] > avgHeartRate
-        ? `Your heart rate is higher than your average of ${avgHeartRate.toFixed(1)} bpm.`
-        : `Your heart rate is ${user.heartRate?.[user.heartRate.length - 1] || 0} bpm, which is ${
-            user.heartRate?.[user.heartRate.length - 1] > avgHeartRate ? 'higher' : 'lower'
-          } than your average of ${avgHeartRate.toFixed(1)} bpm.`,
-    };
+  const message = {
+    steps: user.steps.at(-1) > avgSteps
+      ? `Wow, you've exceeded! Your average steps were ${avgSteps.toFixed(1)}.`
+      : `Your steps are ${user.steps.at(-1)} which is ${user.steps.at(-1) > avgSteps ? 'higher' : 'lower'} than the average of ${avgSteps.toFixed(1)} steps.`,
+    weight: user.weight.at(-1) > avgWeight
+      ? `Your weight is higher than your average of ${avgWeight.toFixed(1)} kg.`
+      : `Your weight is ${user.weight.at(-1)} kg, which is ${user.weight.at(-1) > avgWeight ? 'higher' : 'lower'} than your average of ${avgWeight.toFixed(1)} kg.`,
+    heartRate: user.heartRate.at(-1) > avgHeartRate
+      ? `Your heart rate is higher than your average of ${avgHeartRate.toFixed(1)} bpm.`
+      : `Your heart rate is ${user.heartRate.at(-1)} bpm, which is ${user.heartRate.at(-1) > avgHeartRate ? 'higher' : 'lower'} than your average of ${avgHeartRate.toFixed(1)} bpm.`,
+  };
 
-    res.render('health-metrics', {
-      user,  // Pass the whole user object
-      username,
-      avgHeartRate,
-      avgSteps,
-      avgWeight,
-      message,
-    });
-  })
-  .catch((err) => res.status(500).send('Internal server error'));
-
+  res.json({ username, user, avgHeartRate, avgSteps, avgWeight, message });
 });
 
 
-
-// API to add new health metrics
 app.post('/api/metrics', async (req, res) => {
   const { username, weight, steps, heartRate } = req.body;
   const today = new Date();
+  const user = await User.findOne({ username });
 
-  try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const lastDate = user.dates.at(-1);
+  if (lastDate) {
+    const hours = (today - new Date(lastDate)) / (1000 * 3600);
+    if (hours < 24) {
+      return res.status(400).json({ error: 'You can only add metrics once every 24 hours.' });
     }
-
-    // Check the time difference between the last entry and the current time
-    const lastDate = user.dates[user.dates.length - 1]; // Get the last recorded date
-    if (lastDate) {
-      const timeDiff = today - new Date(lastDate); // Time difference in milliseconds
-      const timeDiffInHours = timeDiff / (1000 * 3600); // Convert milliseconds to hours
-
-      // If less than 24 hours, send a response to the frontend to block the button
-      if (timeDiffInHours < 24) {
-        return res.status(400).json({ error: 'You can only add metrics once every 24 hours.' });
-      }
-    }
-
-    // Add the new values to the user's health data
-    user.weight.push(weight);
-    user.steps.push(steps);
-    user.heartRate.push(heartRate);
-    user.dates.push(today);
-
-    await user.save();
-
-    // Calculate averages and messages
-    const avgWeight = user.weight.reduce((acc, val) => acc + val, 0) / user.weight.length;
-    const avgSteps = user.steps.reduce((acc, val) => acc + val, 0) / user.steps.length;
-    const avgHeartRate = user.heartRate.reduce((acc, val) => acc + val, 0) / user.heartRate.length;
-
-    let message = {
-      weight: '',
-      steps: '',
-      heartRate: ''
-    };
-
-    // Steps - "Wow" message for highest average
-    if (steps > avgSteps) {
-      message.steps = 'Wow, you have exceeded your average steps today!';
-    } else {
-      message.steps = `Your previous average step count was ${avgSteps.toFixed(1)} steps, now it’s ${steps} steps. Keep it up!`;
-    }
-
-    // Weight - Higher/Lower than usual
-    if (weight > avgWeight) {
-      message.weight = `Your weight is higher than your usual average of ${avgWeight.toFixed(1)} kg, now it's ${weight} kg.`;
-    } else if (weight < avgWeight) {
-      message.weight = `Your weight is lower than your usual average of ${avgWeight.toFixed(1)} kg, now it's ${weight} kg.`;
-    } else {
-      message.weight = `Your weight remains the same as your usual average of ${avgWeight.toFixed(1)} kg.`;
-    }
-
-    // Heart Rate - Higher/Lower than usual
-    if (heartRate > avgHeartRate) {
-      message.heartRate = `Your heart rate is higher than usual. The average was ${avgHeartRate.toFixed(1)} bpm, now it’s ${heartRate} bpm.`;
-    } else if (heartRate < avgHeartRate) {
-      message.heartRate = `Your heart rate is lower than usual. The average was ${avgHeartRate.toFixed(1)} bpm, now it’s ${heartRate} bpm.`;
-    } else {
-      message.heartRate = `Your heart rate remains the same as the usual average of ${avgHeartRate.toFixed(1)} bpm.`;
-    }
-
-    res.json({ success: true, message, user });
-  } catch (err) {
-    res.status(500).json({ error: 'Error saving metrics' });
   }
+
+  user.weight.push(weight);
+  user.steps.push(steps);
+  user.heartRate.push(heartRate);
+  user.dates.push(today);
+  await user.save();
+
+  const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+  const message = {
+    steps: steps > avg(user.steps)
+      ? 'Wow, you have exceeded your average steps today!'
+      : `Your previous average step count was ${avg(user.steps).toFixed(1)} steps, now it’s ${steps} steps.`,
+    weight: weight > avg(user.weight)
+      ? `Your weight is higher than your usual average of ${avg(user.weight).toFixed(1)} kg, now it's ${weight} kg.`
+      : weight < avg(user.weight)
+      ? `Your weight is lower than your usual average of ${avg(user.weight).toFixed(1)} kg, now it's ${weight} kg.`
+      : `Your weight remains the same as your usual average of ${avg(user.weight).toFixed(1)} kg.`,
+    heartRate: heartRate > avg(user.heartRate)
+      ? `Your heart rate is higher than usual. The average was ${avg(user.heartRate).toFixed(1)} bpm, now it’s ${heartRate} bpm.`
+      : heartRate < avg(user.heartRate)
+      ? `Your heart rate is lower than usual. The average was ${avg(user.heartRate).toFixed(1)} bpm, now it’s ${heartRate} bpm.`
+      : `Your heart rate remains the same as the usual average of ${avg(user.heartRate).toFixed(1)} bpm.`,
+  };
+
+  res.json({ success: true, message, user });
 });
 
 
 
 
-
-
-
-app.get('/fitnessLogs', async (req, res) => {
+// Get route for fitness logs page
+app.get('/api/fitnessLogs', async (req, res) => {
   try {
     const username = req.session.username;
-
-    if (!username) {
-      return res.status(401).send('User not logged in');
-    }
+    if (!username) return res.status(401).send('User not logged in');
 
     const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
+    if (!user) return res.status(404).send('User not found');
 
-    // Fetch exercise and food recommendations based on user's routine
     const exercises = await Exercise.find({ routine: user.exerciseRoutine });
     const foods = await Food.find({ routine: user.exerciseRoutine });
 
-    // Define the explanation based on the user's routine
-    let routineExplanation;
+    let routineExplanation = '';
+    if (user.exerciseRoutine === 'extreme') {
+      routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Extreme'. This means you should follow a high-intensity regimen with a focus on burning significant calories.";
+    } else if (user.exerciseRoutine === 'medium') {
+      routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Medium'. This suggests a balanced workout routine aimed at steady progress.";
+    } else if (user.exerciseRoutine === 'normal') {
+      routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Normal'. This indicates a moderate approach towards fitness with moderate calorie burn.";
+    } else {
+      routineExplanation = "Your exercise routine will be calculated based on your current weight and ideal weight.";
+    }
 
-if (user.exerciseRoutine === 'extreme') {
-  routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Extreme'. This means you should follow a high-intensity regimen with a focus on burning significant calories.";
-} else if (user.exerciseRoutine === 'medium') {
-  routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Medium'. This suggests a balanced workout routine aimed at steady progress.";
-} else if (user.exerciseRoutine === 'normal') {
-  routineExplanation = "Based on your current weight and ideal weight, your routine is categorized as 'Normal'. This indicates a moderate approach towards fitness with moderate calorie burn.";
-} else {
-  // New else statement to calculate the routine based on the user's weight
-  routineExplanation = "Your exercise routine will be calculated based on your current weight and ideal weight. This will help determine the appropriate intensity of your routine.";
-}
-
-
-    // Generate a weekly schedule (7 days) of exercises and foods
     const weeklySchedule = generateWeeklySchedule(exercises, foods);
 
-    // Pass 'user', 'exercises', 'foods', 'routineExplanation', and 'weeklySchedule' to the view
-    res.render('fitnessLogs', { exercises, foods, user, routineExplanation, weeklySchedule });
+    res.json({ user, exercises, foods, routineExplanation, weeklySchedule });
   } catch (err) {
-    console.log('Error fetching user data:', err);
+    console.error('Error fetching fitness logs:', err);
     res.status(500).send('Server error');
   }
 });
 
-// Function to generate weekly schedule (7 days)
-function generateWeeklySchedule(exercises, foods) {
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  let weeklySchedule = [];
-  
-  // Check if exercises and foods arrays have enough data
-  if (exercises.length === 0 || foods.length === 0) {
-    console.log('Warning: Exercises or Foods arrays are empty.');
-    return []; // Return an empty array or handle this case appropriately
-  }
-
-  for (let i = 0; i < 7; i++) {
-    weeklySchedule.push({
-      day: daysOfWeek[i],
-      exercise: exercises[i % exercises.length],  // Cycle through exercises
-      food: foods[i % foods.length],              // Cycle through foods
-    });
-  }
-
-  return weeklySchedule;
-}
-
-
-
-
-
-
-
-
-function categorizeRoutine(currentWeight, idealWeight) {
-  if (currentWeight >= idealWeight * 1.2) {
-    return 'extreme';
-  } else if (currentWeight >= idealWeight * 1.1) {
-    return 'medium';
-  } else {
-    return 'normal';
-  }
-}
-app.post('/update-goals', async (req, res) => {
+app.post('/api/update-goals', async (req, res) => {
   const { currentWeight, height, age, idealWeight, gender } = req.body;
-  console.log(req.body); // Log to see if data is being received
-
   const username = req.session.username;
-
-  if (!username) {
-    return res.status(401).send('User not logged in');
-  }
+  if (!username) return res.status(401).send('User not logged in');
 
   const user = await User.findOne({ username });
-  if (user) {
-    // Calculate BMR and calorie goal based on gender
-    let bmr;
-    if (gender === 'male') {
-      bmr = 10 * currentWeight + 6.25 * height - 5 * age + 5;
-    } else if (gender === 'female') {
-      bmr = 10 * currentWeight + 6.25 * height - 5 * age - 161;
-    } else {
-      // For 'others', use a neutral constant or handle it differently
-      bmr = 10 * currentWeight + 6.25 * height - 5 * age;
-    }
+  if (!user) return res.status(404).send('User not found');
 
-    const calorieGoal = bmr * 1.2; // Sedentary activity multiplier
+  const bmr = gender === 'male'
+    ? 10 * currentWeight + 6.25 * height - 5 * age + 5
+    : gender === 'female'
+    ? 10 * currentWeight + 6.25 * height - 5 * age - 161
+    : 10 * currentWeight + 6.25 * height - 5 * age;
 
-    // Assign the routine based on weight difference
-    const routine = categorizeRoutine(currentWeight, idealWeight);
+  const calorieGoal = bmr * 1.2;
 
-    // Update user data
-    user.currentWeight = currentWeight;
-    user.height = height;
-    user.age = age;
-    user.idealWeight = idealWeight;
-    user.calorieGoal = calorieGoal;
-    user.exerciseRoutine = routine;
-    user.gender = gender;
+  const routine = categorizeRoutine(currentWeight, idealWeight);
 
-    console.log(user); // Log the updated user object before saving
+  user.currentWeight = currentWeight;
+  user.height = height;
+  user.age = age;
+  user.idealWeight = idealWeight;
+  user.calorieGoal = calorieGoal;
+  user.exerciseRoutine = routine;
+  user.gender = gender;
 
-    // Save the updated user data
-    await user.save();
+  await user.save();
 
-    res.redirect('/fitnessLogs'); // Redirect back to the fitnessLogs page
-  } else {
-    res.status(404).send('User not found');
-  }
+  res.status(200).json({ success: true });
 });
 
+function generateWeeklySchedule(exercises, foods) {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const schedule = [];
 
+  if (exercises.length === 0 || foods.length === 0) return [];
 
-
-// Redirect to Google for authentication
-app.get('/auth/google', (req, res) => {
-  const scopes = ['https://www.googleapis.com/auth/calendar.events'];
-  const url = oauth2Client.generateAuthUrl({ access_type: 'offline', scope: scopes });
-  res.redirect(url);
-});
-
-// Callback to handle authentication
-app.get('/oauth2callback', async (req, res) => {
-  const { code } = req.query;
-
-  if (!code) {
-    return res.status(400).send('No authorization code found in query');
-  }
-
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-
-    // Save tokens to the user
-    const user = await User.findById(req.session.userId);
-    user.googleAccessToken = tokens.access_token;
-    user.googleRefreshToken = tokens.refresh_token; // Ensure this line saves the refresh token
-    await user.save();
-
-    // Fetch events from Google Calendar
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-    const events = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: (new Date()).toISOString(),
-      maxResults: 10,
-      singleEvents: true,
-      orderBy: 'startTime',
+  for (let i = 0; i < 7; i++) {
+    schedule.push({
+      day: days[i],
+      exercise: exercises[i % exercises.length],
+      food: foods[i % foods.length],
     });
-
-    // Redirect the user to a page with the updated data
-    res.redirect('/reminders'); // Or any other page to show calendar events
-    
-    // Render the reminders page with Google Calendar events
-    res.render('reminders', {
-      reminders: user.reminders,
-      googleCalendarEvents: events.data.items,  // Ensure this is passed to EJS
-      googleCalendarConnected: true, // Pass this flag correctly
-    });
-  } catch (error) {
-    console.error('Error during the OAuth2 callback:', error);
-    res.status(500).send('OAuth callback error');
-  }
-});
-
-app.get('/google-calendar-events', async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    const user = await User.findById(userId);
-
-    // Set up Google OAuth2 credentials
-    oauth2Client.setCredentials({
-      access_token: user.googleAccessToken,
-      refresh_token: user.googleRefreshToken,
-    });
-
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-    // Fetch events from the primary calendar
-    const response = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: new Date().toISOString(), // Fetch events starting from now
-      maxResults: 10, // Adjust as needed
-      singleEvents: true,
-      orderBy: 'startTime',
-    });
-
-    const events = response.data.items;
-    res.json(events); // Send the events to the frontend
-  } catch (error) {
-    console.error('Error fetching Google Calendar events:', error);
-    res.status(500).send('Error fetching calendar events');
-  }
-});
-
-
-
-app.get('/reminders', async (req, res) => {
-  const userId = req.session.userId;
-  if (!userId) {
-    return res.redirect('/login');
   }
 
-  const user = await User.findById(userId);
-  if (!user) {
-    return res.status(404).send('User not found');
-  }
+  return schedule;
+}
+
+function categorizeRoutine(currentWeight, idealWeight) {
+  if (currentWeight >= idealWeight * 1.2) return 'extreme';
+  if (currentWeight >= idealWeight * 1.1) return 'medium';
+  return 'normal';
+}
+
+
+
+
+
+
+app.get('/reminders/data', async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  if (!user) return res.status(404).send('User not found');
 
   let googleCalendarEvents = [];
-  let googleCalendarConnected = false; // Default value is false
+  let googleCalendarConnected = false;
 
-  // Check if the user has a Google access token
   if (user.googleAccessToken) {
-    googleCalendarConnected = true; // Set this to true when connected to Google Calendar
+    googleCalendarConnected = true;
 
     oauth2Client.setCredentials({
       access_token: user.googleAccessToken,
-      refresh_token: user.googleRefreshToken,
+      refresh_token: user.googleRefreshToken
     });
 
-    const currentDate = new Date();
-    const expiryDate = oauth2Client.credentials.expiry_date ? new Date(oauth2Client.credentials.expiry_date) : null;
+    try {
+      const response = await google.calendar({ version: 'v3', auth: oauth2Client }).events.list({
+        calendarId: 'primary',
+        timeMin: new Date().toISOString(),
+        timeMax: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString(),
+        singleEvents: true,
+        orderBy: 'startTime',
+        maxResults: 10
+      });
 
-    // Refresh token if it's expired
-    if (!expiryDate || currentDate >= expiryDate) {
-      try {
-        const { credentials } = await oauth2Client.refreshAccessToken();
-        oauth2Client.setCredentials(credentials); // Update with new credentials
-      } catch (error) {
-        console.error('Error refreshing access token:', error);
-        return res.redirect('/auth/google'); // Redirect to Google authentication
-      }
+      googleCalendarEvents = response.data.items;
+    } catch (error) {
+      console.error('Error fetching calendar events:', error.message);
     }
+  }
+
+  res.json({
+    reminders: user.reminders,
+    googleCalendarEvents,
+    googleCalendarConnected
+  });
+});
+
+app.post('/reminders/add', async (req, res) => {
+  const { text, time, syncToCalendar, userTimeZone } = req.body;
+  const user = await User.findById(req.session.userId);
+
+  const [hour, minute] = time.split(':');
+  const now = moment().tz(userTimeZone);
+  const startDateTime = moment(now).set({ hour, minute, second: 0 });
+  const endDateTime = moment(startDateTime).add(30, 'minutes');
+
+  const reminder = {
+    text,
+    time,
+    completed: false,
+    calendarEventId: null
+  };
+
+  if (syncToCalendar && user.googleAccessToken) {
+    oauth2Client.setCredentials({
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken
+    });
 
     try {
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-      // Fetch events for the next 30 days
-      const timeMin = (new Date()).toISOString();
-      const timeMax = (new Date(new Date().setMonth(new Date().getMonth() + 1))).toISOString();
-
-      const response = await calendar.events.list({
-        calendarId: 'primary',
-        timeMin: timeMin,
-        timeMax: timeMax,
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 10, // Limit number of events
-      });
-
-      googleCalendarEvents = response.data.items; // Store events in the array
-
-    } catch (error) {
-      console.error('Error fetching Google Calendar events:', error);
-      return res.status(500).send('Error fetching events');
-    }
-  }
-
-  // Render the reminders page and pass necessary data to EJS
-  res.render('reminders', {
-    reminders: user.reminders,
-    googleCalendarEvents: googleCalendarEvents, // Pass the events from Google Calendar
-    googleCalendarConnected: googleCalendarConnected, // Ensure this flag is passed
-  });
-});
-
-
-
-
-// POST: Add a New Reminder
-app.post('/reminders/add', async (req, res) => {
-  const { text, time, syncToCalendar, userTimeZone } = req.body; // userTimeZone is now sent from the client
-  const userId = req.session.userId;
-
-  try {
-    const user = await User.findById(userId);
-
-    // Create the reminder in the user's database
-    const reminder = {
-      text,
-      time,
-      completed: false,
-      calendarEventId: null,
-    };
-
-    // Get the current time in the user's time zone
-    const now = moment().tz(userTimeZone);  // Use the user's time zone
-
-    // Parse the time entered by the user
-    const [hour, minute] = time.split(':'); // Split the time into hour and minute
-
-    // Set startDateTime and endDateTime based on the current time
-    const startDateTime = moment(now).set({ hour: hour, minute: minute, second: 0 });
-    const endDateTime = moment(startDateTime).add(30, 'minutes'); // Default duration: 30 minutes
-
-    console.log(`Start DateTime (${userTimeZone}): ${startDateTime.toString()}`);
-    console.log(`End DateTime (${userTimeZone}): ${endDateTime.toString()}`);
-
-    // Sync to Google Calendar if checkbox is checked
-    if (syncToCalendar === 'on' && user.googleAccessToken) {
-      oauth2Client.setCredentials({
-        access_token: user.googleAccessToken,
-        refresh_token: user.googleRefreshToken,
-      });
-
-      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
       const event = {
         summary: text,
-        start: {
-          dateTime: startDateTime.toISOString(),
-          timeZone: userTimeZone, // Use user's time zone
-        },
-        end: {
-          dateTime: endDateTime.toISOString(),
-          timeZone: userTimeZone, // Use user's time zone
-        },
+        start: { dateTime: startDateTime.toISOString(), timeZone: userTimeZone },
+        end: { dateTime: endDateTime.toISOString(), timeZone: userTimeZone }
       };
 
-      // Create the event in Google Calendar
       const googleEvent = await calendar.events.insert({
         calendarId: 'primary',
-        resource: event,
+        resource: event
       });
 
-      // Save the Google Calendar event ID to the reminder
       reminder.calendarEventId = googleEvent.data.id;
-
-      console.log(`Google Event ID: ${googleEvent.data.id}`);
+    } catch (err) {
+      console.error('Error syncing to Google Calendar:', err.message);
     }
-
-    user.reminders.push(reminder);
-    await user.save();
-
-    res.redirect('/reminders');
-  } catch (error) {
-    console.error('Error adding reminder:', error);
-    res.status(500).send('Error adding reminder');
   }
+
+  user.reminders.push(reminder);
+  await user.save();
+  res.status(201).send('Reminder added');
 });
 
-
-
-
-// POST: Mark Reminder as Complete
 app.post('/reminders/complete/:id', async (req, res) => {
-  const userId = req.session.userId; // Replace with your auth session handling
+  const userId = req.session.userId;
   const reminderId = req.params.id;
 
   await User.updateOne(
@@ -940,49 +747,61 @@ app.post('/reminders/complete/:id', async (req, res) => {
     { $set: { 'reminders.$.completed': true } }
   );
 
-  res.redirect('/reminders');
+  res.status(200).send('Reminder completed');
 });
+
 
 app.post('/reminders/delete', async (req, res) => {
   const { reminderId } = req.body;
-  const userId = req.session.userId;
+  const user = await User.findById(req.session.userId);
 
-  try {
-    const user = await User.findById(userId);
+  const reminder = user.reminders.id(reminderId);
+  if (!reminder) return res.status(404).send('Reminder not found');
 
-    // Find the reminder to delete
-    const reminder = user.reminders.id(reminderId);
+  if (reminder.calendarEventId && user.googleAccessToken) {
+    oauth2Client.setCredentials({
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken
+    });
 
-    if (!reminder) {
-      return res.status(404).send('Reminder not found');
-    }
-
-    // Check if the reminder is synced to Google Calendar
-    if (reminder.syncedToCalendar && reminder.calendarEventId) {
-      oauth2Client.setCredentials({
-        access_token: user.googleAccessToken,
-        refresh_token: user.googleRefreshToken,
-      });
-
+    try {
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-      // Delete the event from Google Calendar
       await calendar.events.delete({
         calendarId: 'primary',
-        eventId: reminder.calendarEventId,
+        eventId: reminder.calendarEventId
       });
-
-      console.log('Google Calendar event deleted successfully');
+    } catch (err) {
+      console.error('Error deleting Google Calendar event:', err.message);
     }
+  }
 
-    // Remove the reminder from the user's reminders array
-    user.reminders.pull(reminderId);  // Use pull instead of remove
-    await user.save();
+  user.reminders.pull(reminderId);
+  await user.save();
 
-    res.redirect('/reminders');
+  res.status(200).send('Reminder deleted');
+});
+
+app.get('/google-calendar-events', async (req, res) => {
+  const user = await User.findById(req.session.userId);
+  if (!user || !user.googleAccessToken) return res.status(403).send('Unauthorized');
+
+  oauth2Client.setCredentials({
+    access_token: user.googleAccessToken,
+    refresh_token: user.googleRefreshToken
+  });
+
+  try {
+    const response = await google.calendar({ version: 'v3', auth: oauth2Client }).events.list({
+      calendarId: 'primary',
+      timeMin: new Date().toISOString(),
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    res.json(response.data.items);
   } catch (error) {
-    console.error('Error deleting reminder:', error);
-    res.status(500).send('Error deleting reminder');
+    console.error('Google event fetch error:', error.message);
+    res.status(500).send('Failed to fetch calendar events');
   }
 });
 
@@ -993,7 +812,12 @@ app.post('/reminders/delete', async (req, res) => {
 
 
 
+// Serve static files from React app
+app.use(express.static(path.join(__dirname, 'client', 'build')));
 
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+});
 
 
 

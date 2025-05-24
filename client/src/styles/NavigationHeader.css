@@ -1,0 +1,293 @@
+/* General Styles */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+/* Header */
+.site-header {
+    background-color: #006400; /* Dark Green Background */
+    padding: 0px 0; /* Reduced padding to shift the content upwards */
+    color: white;
+    font-size: 14px; /* Reduced font size */
+}
+
+/* Header container */
+.site-header__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 20px; /* Reduced padding */
+    width: 100%;
+}
+
+/* Adjust logo and site branding */
+.site-header__container .site-branding {
+    margin-top: -10px; /* Shifts the branding upwards */
+}
+
+/* Adjust text height */
+.site-header__container h1,
+.site-header__container .site-branding {
+    line-height: 1; /* Reduces line height */
+}
+
+/* Menu links */
+.menu-item a {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    margin: 0 20px;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.menu-item a:hover {
+    background-color: #004d0000;
+    color: white;
+}
+
+/* Mobile Menu Styling */
+.site-header__menu-toggle {
+    display: none; /* Hide mobile menu toggle by default */
+}
+
+@media (max-width: 768px) {
+    .site-header__container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .site-header__menu {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .site-header__menu-toggle {
+        display: block; /* Show the mobile menu toggle */
+    }
+}
+
+.site-branding img {
+    max-width: 150px;
+}
+
+.main-navigation ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 15px;
+}
+
+.main-navigation ul li a {
+    text-decoration: none;
+    color: #a7cc92;
+    font-weight: bold;
+    transition: all 0.3s ease-out;
+}
+
+.main-navigation ul li a:hover {
+    color: #9c623b;
+    font-size: 1.2em;
+}
+
+/* Profile icon */
+.profile-icon {
+    margin-left: auto; /* Pushes the profile icon to the far right */
+    position: relative; /* To control positioning within the header */
+}
+
+.profile-icon i {
+    font-size: 27px; /* Adjust size for the icon */
+    color: white;
+    cursor: pointer;
+    background-color: #006400; /* Same dark green background as header */
+    padding: 10px; /* Circle padding */
+    border-radius: 50%; /* Make the icon circular */
+    border: 3px solid white; /* Add a white border around the circle */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: add a shadow for better visibility */
+    transition:all ease-out 0.1s;
+}
+
+.profile-icon i:hover {
+    opacity: 0.6;
+    background-color: #145814;
+}
+
+
+
+/* Profile Sidebar */
+.profile-sidebar {
+    position: fixed;
+    top: 0;
+    right: -350px; /* Hidden off the screen by default */
+    width: 300px;
+    height: 100%;
+    background-color:  #c86625bd;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    transition: right 0.3s ease; /* Smooth transition */
+    z-index: 1000;
+}
+
+/* Sidebar Active State */
+.profile-sidebar.active {
+    right: 0; /* Make the sidebar visible */
+}
+
+
+#profile-form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+#profile-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 40px;
+    background-color: #614608d0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 10px;
+    margin-bottom: 15px;
+}
+
+button:hover {
+    background-color:  #493506d0;
+}
+
+.custom-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Center it horizontally */
+    background-color: #bb8246e8; /* Green for success */
+    color: rgb(0, 0, 0);
+    padding: 8px 5px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+    font-size: 16px;
+    opacity: 1; /* Fully visible */
+    text-align: center; /* Center align text and inline elements */
+    border: 2px solid rgb(82, 34, 34); /* White border around the alert box */
+    line-height: 1; /* Reduce the space between lines of text */
+}
+
+.custom-alert.error {
+    background-color: #f44336; /* Red for error */
+}
+
+/* Close button style */
+.close-alert {
+    position: absolute;
+    top: 5px;  /* Distance from the top of the alert */
+    right: 10px; /* Distance from the right of the alert */
+    color: rgb(82, 34, 34);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.close-alert:hover {
+    color: #ff0000; /* Optional: change color on hover */
+}
+
+.custom-alert.error {
+    background-color: #f44336; /* Red for error */
+}
+
+
+/* Close Sidebar Button */
+#close-sidebar {
+    background-color: #004d0000;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    transition: all ease-in 0.1;
+}
+
+#close-sidebar:hover {
+    background-color: #36681200;
+    font-size: 1.1em;
+}
+
+/* Logout Button */
+/* Logout Button Styles */
+.logout-button {
+    background-color: #ed230d4b; /* A vibrant red for attention */
+    color: #fff; /* White text for contrast */
+    border: none; /* No border for a clean look */
+    padding: 10px 20px; /* Spacing around the text */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Readable text size */
+    font-weight: bold; /* Emphasize the button */
+    cursor: pointer; /* Show a pointer cursor on hover */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth hover effects */
+}
+
+.logout-button:hover {
+    background-color: #c0392b; /* Darker red on hover */
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+.logout-button:active {
+    background-color: #a93226; /* Even darker red when pressed */
+    transform: scale(0.95); /* Slight shrink on click */
+}
+
+
+/* Close Button */
+.close-btn {
+    font-size: 36px;
+    color: white;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 20px;
+}
+
+#sidebar.show {
+    width: 300px; /* Set sidebar width when visible */
+}
+
+h2{
+    padding-left: 20px;
+    padding-bottom: 0px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 30px;
+    color: #ffffff;
+    font-style:oblique;
+}

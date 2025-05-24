@@ -7,7 +7,7 @@
   }
   
   /* Body Styling */
-  body {
+  .register-page  {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -30,6 +30,8 @@
   /* Registration Form Container */
 /* Registration Form Container */
 .register {
+  justify-content: center;
+    align-items: center;
     position: relative;
     padding: 60px;
     background: rgba(255, 255, 255, 0.25);
