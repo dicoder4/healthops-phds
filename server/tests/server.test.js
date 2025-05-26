@@ -1,4 +1,3 @@
-import app from '../server.js'; // instead of server
 
 import mongoose from 'mongoose';
 import request from 'supertest';
