@@ -44,7 +44,7 @@ const validateForm = async (e) => {
   }
 
   try {
-    const response = await fetch('/api/submit-symptoms', {
+    const response = await fetch('/submit-symptoms', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
