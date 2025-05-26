@@ -1,0 +1,53 @@
+name: Full CI - MERN Stack
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: --health-cmd="mongosh --eval 'db.stats()'" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: 📁 Install backend dependencies
+        run: |
+          cd server
+          npm install
+
+      - name: 📁 Install frontend dependencies
+        run: |
+          cd client
+          npm install
+
+      - name: 🛠 Build frontend
+        run: |
+          cd client
+          npm run build
+
+      - name: ✅ Run backend tests (optional)
+        run: |
+          cd server
+          echo "No test suite yet"  # Replace with npm test later
