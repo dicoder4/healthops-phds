@@ -26,7 +26,7 @@ const Register = () => {
 
     if (res.ok) {
       setMessage('Registered successfully! Redirecting to login...');
-      setTimeout(() => window.location.href = '/login', 2000); // or use React Router
+      setTimeout(() => window.location.href = '/', 2000); // or use React Router
     } else {
       setMessage(data.message || 'Registration failed');
     }

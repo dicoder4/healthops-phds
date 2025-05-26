@@ -1,0 +1,19 @@
+# === General ===
+node_modules
+.env
+.env.local
+.env.*.local
+logs
+*.log
+.DS_Store
+
+# === Server ===
+server/node_modules
+
+# === Client ===
+client/node_modules
+client/build
+
+# === IDE ===
+.vscode
+.idea

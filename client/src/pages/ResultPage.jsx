@@ -10,7 +10,7 @@ const ResultPage = () => {
     <>
       <div className="result-page">
       <div className="bg-overlay"></div>
-      <img src="/images/algae.png" className="bg" alt="Background" />
+      <img src="/images/ocean3.jpg" className="bg" alt="Background" />
       <div className="container">
         <h1>Possible Diseases You May Have</h1>
 
@@ -147,7 +147,7 @@ const ResultPage = () => {
           left: 0;
           width: 100%;
           height: 100vh;
-          background: rgba(212, 209, 59, 0.38);
+          background: rgba(14, 86, 49, 0.45);
           z-index: 0;
           pointer-events: none;
         }

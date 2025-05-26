@@ -6,16 +6,19 @@ const FitnessLogs = () => {
   const [foods, setFoods] = useState([]);
   const [weeklySchedule, setWeeklySchedule] = useState([]);
   const [routineExplanation, setRoutineExplanation] = useState('');
+const [gender, setGender] = useState('');
 
   const fetchFitnessLogs = async () => {
     const res = await fetch('/api/fitnessLogs');
     const data = await res.json();
     setUser(data.user);
+    setGender(data.user.gender); // add this line
     setExercises(data.exercises);
     setFoods(data.foods);
     setWeeklySchedule(data.weeklySchedule);
     setRoutineExplanation(data.routineExplanation);
   };
+  
 
   useEffect(() => {
     fetchFitnessLogs();
@@ -47,23 +50,25 @@ const FitnessLogs = () => {
 
       <form onSubmit={handleGoalSubmit} className="fitness-form">
         <label htmlFor="currentWeight" className="fitness-label">Current Weight (kg):</label>
-        <input type="number" name="currentWeight" defaultValue={user.currentWeight} required className="fitness-input" />
+       <input type="number" name="currentWeight" defaultValue={user?.currentWeight || ''} required className="fitness-input" />
 
         <label htmlFor="height" className="fitness-label">Height (cm):</label>
-        <input type="number" name="height" defaultValue={user.height} required className="fitness-input" />
+        <input type="number" name="height" defaultValue={user?.height || ''} required className="fitness-input" />
+
 
         <label htmlFor="age" className="fitness-label">Age:</label>
-        <input type="number" name="age" defaultValue={user.age} required className="fitness-input" />
+        <input type="number" name="age" defaultValue={user?.age || ''} required className="fitness-input" />
 
         <label htmlFor="gender" className="fitness-label">Gender:</label>
-        <select name="gender" defaultValue={user.gender} className="fitness-select">
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="others">Others</option>
-        </select>
+        <select name="gender" value={gender} onChange={(e) => setGender(e.target.value)} className="fitness-select">
+  <option value="male">Male</option>
+  <option value="female">Female</option>
+  <option value="others">Others</option>
+</select>
+
 
         <label htmlFor="idealWeight" className="fitness-label">Ideal Weight (kg):</label>
-        <input type="number" name="idealWeight" defaultValue={user.idealWeight} required className="fitness-input" />
+        <input type="number" name="idealWeight" defaultValue={user?.idealWeight || ''} required className="fitness-input" />
 
         <button type="submit" className="fitness-submit-btn">Submit</button>
       </form>

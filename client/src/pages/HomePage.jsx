@@ -150,11 +150,12 @@ useEffect(() => {
     if (!newReview.trim()) return alert("Review can't be empty.");
     
     try {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: newReview })
-      });
+      const res = await fetch('/reviews', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ text: newReview })
+});
+
       if (res.ok) {
         setNewReview('');
         fetchHomepageData();
@@ -164,24 +165,10 @@ useEffect(() => {
     }
   };
 
-  const handleDeleteReview = async (reviewId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this review?');
-    if (!confirmDelete) return;
-    
-    try {
-      const res = await fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchHomepageData();
-        alert('Review deleted successfully.');
-      }
-    } catch (err) {
-      console.error('Error deleting review:', err);
-    }
-  };
 
   const handleReviewAction = async (reviewId, action) => {
     try {
-      const res = await fetch(`/api/reviews/${reviewId}/${action}`, { method: 'POST' });
+      const res = await fetch(`/reviews/${reviewId}/${action}`, { method: 'POST' });
       if (res.ok) fetchHomepageData();
     } catch (err) {
       console.error(`Error ${action}ing review:`, err);
@@ -195,7 +182,25 @@ useEffect(() => {
   const prevSlide = () => {
     setActiveSlide((prev) => (prev === 0 ? 2 : prev - 1));
   };
+function WelcomeMessage({ user }) {
+  const [isFirstVisit, setIsFirstVisit] = useState(true);
 
+  useEffect(() => {
+    const visitedBefore = localStorage.getItem('visitedBefore');
+    if (visitedBefore) {
+      setIsFirstVisit(false);
+    } else {
+      localStorage.setItem('visitedBefore', 'true');
+      setIsFirstVisit(true);
+    }
+  }, []);
+
+    if (isFirstVisit) {
+    return <h1 className="welcome-text">Welcome, {user?.username || 'User'}!</h1>;
+  } else {
+    return <h1 className="welcome-text">Welcome, {user?.username || 'User'}!</h1>;
+  }
+}
   return (
     <>
       <NavigationHeader />
@@ -206,7 +211,7 @@ useEffect(() => {
           <img src="/images/bg4.jpg" className="bg" alt="Background" />
           <div className="container1">
             <div className="content">
-              <h1 className="welcome-text">Welcome Back, {user?.username || 'User'}!</h1>
+              <WelcomeMessage user={user} />
               <div className="containertype">
       <p className="typing-text">How are you doing today?</p>
     </div>
@@ -336,15 +341,16 @@ useEffect(() => {
             ))}
           </div>
 
-          <div id="review-form">
-            <textarea 
-              id="new-review" 
-              placeholder="Write your review here..." 
-              value={newReview}
-              onChange={(e) => setNewReview(e.target.value)}
-            ></textarea>
-            <button id="submit-review" onClick={handleReviewSubmit}>Submit</button>
-          </div>
+          <form id="review-form" onSubmit={handleReviewSubmit}>
+  <textarea 
+    id="new-review" 
+    placeholder="Write your review here..." 
+    value={newReview}
+    onChange={(e) => setNewReview(e.target.value)}
+  ></textarea>
+  <button id="submit-review" type="submit">Submit</button>
+</form>
+
         </section>
       </main>
 
