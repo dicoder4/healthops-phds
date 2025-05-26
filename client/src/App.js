@@ -1,51 +1,56 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import { useState } from "react";
+import HomePage from './pages/HomePage';
+import IndexPage from './pages/IndexPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import FitnessLogsPage from './pages/FitnessLogsPage';
+import HealthMetricsPage from './pages/HealthMetricsPage';
+import RemindersPage from './pages/RemindersPage';
+import ResultPage from './pages/ResultPage';
+
+const ProtectedRoute = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [userSession, setUserSession] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/current_user', { credentials: 'include' })
+ // credentials needed for session cookies
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        setUserSession(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setUserSession(null);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (!userSession) return <Navigate to="/" replace />;
+
+  return React.cloneElement(children, { user: userSession });
+};
 
 function App() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [response, setResponse] = useState("");
-
-  const register = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-      setResponse(data.message || data.error);
-    } catch (err) {
-      setResponse("Error contacting server");
-    }
-  };
-
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h2>Register</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{ padding: "0.5rem", width: "300px" }}
-      />
-      <br /><br />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{ padding: "0.5rem", width: "300px" }}
-      />
-      <br /><br />
-      <button onClick={register} style={{ padding: "0.5rem 1rem" }}>Register</button>
-      <p style={{ marginTop: "1rem", color: "green" }}>{response}</p>
-    </div>
+    <Router>
+      <Routes>
+        {/* Public */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Protected */}
+        <Route path="/homePage" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+        <Route path="/index" element={<ProtectedRoute><IndexPage /></ProtectedRoute>} />
+        <Route path="/fitnessLogs" element={<ProtectedRoute><FitnessLogsPage /></ProtectedRoute>} />
+        <Route path="/health-metrics" element={<ProtectedRoute><HealthMetricsPage /></ProtectedRoute>} />
+        <Route path="/reminders" element={<ProtectedRoute><RemindersPage /></ProtectedRoute>} />
+        <Route path="/results" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
+      </Routes>
+    </Router>
   );
 }
 
