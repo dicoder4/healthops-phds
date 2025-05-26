@@ -53,11 +53,13 @@ jobs:
           --health-retries 5
 
     env:
-      MONGO_URI: ${{ secrets.MONGO_URI }}
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
-
+        GOOGLE_CLIENT_ID: dummy-id
+        GOOGLE_CLIENT_SECRET: dummy-secret
+        GOOGLE_REDIRECT_URI: http://localhost:4000/oauth2callback
+        MONGO_URI: mongodb://localhost:27017/healthops_test
+        SESSION_SECRET: testsecret
+        NODE_ENV: test
+        PORT: 4000
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v3
