@@ -21,15 +21,16 @@ afterAll(async () => {
 });
 
 describe('HealthOps Server Basic Routes', () => {
-  it('should redirect from / to /login', async () => {
+  it('should return the React index.html for unknown routes', async () => {
     const res = await request(app).get('/');
-    expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/login');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('<!doctype html>'); // Basic check for React build
   });
 
-  it('should load login page', async () => {
+  it('should return the React index.html for /login', async () => {
     const res = await request(app).get('/login');
     expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('<form'); // crude EJS check
+    expect(res.text).toContain('<!doctype html>'); // React serves same entry point
   });
 });
+
