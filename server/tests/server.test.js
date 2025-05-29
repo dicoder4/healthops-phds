@@ -1,10 +1,9 @@
-
 import mongoose from 'mongoose';
 import request from 'supertest';
 import dotenv from 'dotenv';
 dotenv.config();
 
-import app from '../server.js'; // Import the Express app directly
+import app from '../server.js';
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/healthops_test';
 
@@ -21,15 +20,15 @@ afterAll(async () => {
 });
 
 describe('HealthOps Server Basic Routes', () => {
-  it('should redirect from / to /login', async () => {
+  it('should serve React app at root route', async () => {
     const res = await request(app).get('/');
-    expect(res.statusCode).toBe(302);
-    expect(res.headers.location).toBe('/login');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('<!doctype html>');
   });
 
-  it('should load login page', async () => {
+  it('should serve React app at /login route', async () => {
     const res = await request(app).get('/login');
     expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('<form'); // crude EJS check
+    expect(res.text).toContain('<!doctype html>');
   });
 });
