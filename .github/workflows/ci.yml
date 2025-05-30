@@ -105,6 +105,11 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
 
+      - name: 🏗️ Build Frontend
+        run: CI=false npm run build
+        working-directory: ./client
+      
+
       # 🌐 Simulated Monitoring with Lighthouse
       - name: 🌍 Lighthouse Performance Check (Simulated Monitoring)
         uses: treosh/lighthouse-ci-action@v10
