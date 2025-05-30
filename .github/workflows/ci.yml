@@ -111,9 +111,10 @@ jobs:
       
 
       # 🌐 Simulated Monitoring with Lighthouse
-      - name: 🌍 Lighthouse Performance Check (Simulated Monitoring)
+      - name: 🌐 Lighthouse Performance Check
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: './client/lighthouserc.json'
           uploadArtifacts: true
+          artifactName: 'lighthouseresults'
         continue-on-error: true
