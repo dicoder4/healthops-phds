@@ -58,8 +58,9 @@ jobs:
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
       MONGO_URI: ${{ secrets.MONGO_URI }}
-      SESSION_SECRET: dummy-secret # You can also add this to secrets if needed
+      SESSION_SECRET: dummy-secret
       NODE_ENV: test
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v3
@@ -81,11 +82,11 @@ jobs:
         run: CI=false npm run build
         working-directory: ./client
 
-      - name: 🔍 Run ESLint (ignores handled in eslint.config.js)
+      - name: 🔍 Run ESLint
         run: npm run lint
         working-directory: ./server
 
-      - name: 🧪 Run Backend Tests (ESM Compatible)
+      - name: 🧪 Run Backend Integration Tests
         run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests --testEnvironment=node --testTimeout=10000
         working-directory: ./server
 
@@ -95,3 +96,19 @@ jobs:
 
       - name: ✅ Confirm React Built
         run: test -f ./client/build/index.html
+
+      - name: 🛡️ Snyk Security Scan (Backend)
+        uses: snyk/actions/node@master
+        with:
+          args: test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+        working-directory: ./server
+
+      - name: 🌐 Lighthouse Performance Check (Simulated Monitoring)
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './client/lighthouserc.json'
+          uploadArtifacts: true
+        continue-on-error: true
