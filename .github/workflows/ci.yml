@@ -97,16 +97,16 @@ jobs:
       - name: ✅ Confirm React Built
         run: test -f ./client/build/index.html
 
-      - name: 🛡️ Snyk Security Scan (Backend)
-        uses: snyk/actions/node@master
-        with:
-          args: test
+      # 🔒 Security Scan with Snyk
+      - name: 🛡️ Run Snyk Test
+        run: npx snyk test
+        working-directory: ./server
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
-        working-directory: ./server
 
-      - name: 🌐 Lighthouse Performance Check (Simulated Monitoring)
+      # 🌐 Simulated Monitoring with Lighthouse
+      - name: 🌍 Lighthouse Performance Check (Simulated Monitoring)
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: './client/lighthouserc.json'
