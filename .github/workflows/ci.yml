@@ -116,5 +116,5 @@ jobs:
         with:
           configPath: './client/lighthouserc.json'
           uploadArtifacts: true
-          artifactName: 'lighthouse_results'
+          artifactName: 'lighthouse-results'
         continue-on-error: true
