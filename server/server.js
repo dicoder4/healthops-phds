@@ -39,10 +39,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 60 * 60 * 1000,
-  }
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production', // true in prod (HTTPS)
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in prod
+  maxAge: 60 * 60 * 1000,
+},
+
 }));
 app.use(flash());
 
