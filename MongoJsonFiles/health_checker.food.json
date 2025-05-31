@@ -1,0 +1,72 @@
+[{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b8e"
+  },
+  "routine": "extreme",
+  "food_name": "Grilled Chicken",
+  "calories_per_serving": 500
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b8f"
+  },
+  "routine": "extreme",
+  "food_name": "Brown Rice",
+  "calories_per_serving": 250
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b90"
+  },
+  "routine": "extreme",
+  "food_name": "Broccoli",
+  "calories_per_serving": 50
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b91"
+  },
+  "routine": "medium",
+  "food_name": "Salmon",
+  "calories_per_serving": 400
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b92"
+  },
+  "routine": "medium",
+  "food_name": "Sweet Potato",
+  "calories_per_serving": 150
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b93"
+  },
+  "routine": "medium",
+  "food_name": "Spinach",
+  "calories_per_serving": 30
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b94"
+  },
+  "routine": "normal",
+  "food_name": "Avocado",
+  "calories_per_serving": 250
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b95"
+  },
+  "routine": "normal",
+  "food_name": "Quinoa",
+  "calories_per_serving": 220
+},
+{
+  "_id": {
+    "$oid": "67608e1de890f624ec628b96"
+  },
+  "routine": "normal",
+  "food_name": "Greek Yogurt",
+  "calories_per_serving": 150
+}]
