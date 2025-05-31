@@ -24,7 +24,7 @@ import homepageRoutes from './routes/homepage.js';
 const __dirname = path.resolve();
 
 const app = express();
-
+const isProduction = process.env.NODE_ENV === 'production';
 // CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'https://medsquire-mern.vercel.app', 'https://medsquire-mern-cd.vercel.app'],
@@ -39,12 +39,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // true in prod (HTTPS)
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in prod
-  maxAge: 60 * 60 * 1000,
-},
-
+    httpOnly: true,
+    secure: isProduction,                       // HTTPS only in production
+    sameSite: isProduction ? 'none' : 'lax',    // Cross-site support only in production
+    maxAge: 60 * 60 * 1000                      // 1 hour
+  }
 }));
 app.use(flash());
 
