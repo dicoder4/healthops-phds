@@ -27,7 +27,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000','https://medsquire-mern.vercel.app'],
   credentials: true
 }));
 
@@ -60,15 +60,10 @@ app.use('/', reviewRoutes);
 app.use('/', reminderRoutes);
 app.use('/', homepageRoutes);
 
-// Serve React frontend
-app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'));
-});
 
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+

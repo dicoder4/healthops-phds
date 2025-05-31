@@ -16,7 +16,7 @@ const NavigationHeader = () => {
     // Fetch current user details from the backend when the component mounts
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('/api/current_user', { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/current_user`, { withCredentials: true });
 
   // Adjust the endpoint if needed
         const { gmail, phNo } = response.data;

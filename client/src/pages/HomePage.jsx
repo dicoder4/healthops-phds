@@ -18,7 +18,7 @@ const HomePage = () => {
 const fetchHomepageData = async () => {
   try {
     console.log("[HOMEPAGE] Fetching homepage data...");
-    const res = await fetch('/homePage');
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/homePage`);
     if (!res.ok) throw new Error('Failed to load homepage data');
     const data = await res.json();
 
@@ -42,7 +42,7 @@ const fetchHomepageData = async () => {
   const fetchMetrics = async () => {
     try {
       console.log(`[METRICS] Fetching metrics for user: ${user?.username}`);
-      const response = await fetch(`/api/metrics/${user.username}`);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/metrics/${user.username}`);
       const data = await response.json();
       setMetrics(data || {});
     } catch (error) {
@@ -150,7 +150,7 @@ useEffect(() => {
     if (!newReview.trim()) return alert("Review can't be empty.");
     
     try {
-      const res = await fetch('/reviews', {
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/reviews`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ text: newReview })
@@ -168,7 +168,7 @@ useEffect(() => {
 
   const handleReviewAction = async (reviewId, action) => {
     try {
-      const res = await fetch(`/reviews/${reviewId}/${action}`, { method: 'POST' });
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/reviews/${reviewId}/${action}`, { method: 'POST' });
       if (res.ok) fetchHomepageData();
     } catch (err) {
       console.error(`Error ${action}ing review:`, err);

@@ -21,7 +21,7 @@ const HealthMetrics = () => {
 
 
   useEffect(() => {
-    fetch('/health-metrics/data')
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/health-metrics/data`)
       .then(res => res.json())
       .then(data => {
         setUsername(data.username);

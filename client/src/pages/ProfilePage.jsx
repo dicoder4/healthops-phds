@@ -22,7 +22,7 @@ document.getElementById('profile-form').addEventListener('submit', function (e) 
     const phNo = document.getElementById('phNo').value;
 
     // Send the updated profile data to the server
-    fetch('/update-profile', {
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/update-profile`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

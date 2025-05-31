@@ -271,7 +271,7 @@ const validateForm = async (e) => {
   }
 
   try {
-    const response = await fetch('/submit-symptoms', {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/submit-symptoms`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
