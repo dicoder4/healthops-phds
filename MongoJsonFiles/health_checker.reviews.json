@@ -1,0 +1,69 @@
+[{
+  "_id": {
+    "$oid": "67715fd0b8286e6286d9f2b5"
+  },
+  "user": {
+    "$oid": "67641ebc6068d7d9aee15e19"
+  },
+  "text": "This website is a game changer!! Gr8 way to keep ur health goals in check :)",
+  "likes": 0,
+  "dislikes": 1,
+  "likedBy": [],
+  "dislikedBy": [
+    {
+      "$oid": "675c5e42cca0836b61693e0b"
+    }
+  ],
+  "createdAt": {
+    "$date": "2024-12-29T14:42:24.934Z"
+  },
+  "__v": 12
+},
+{
+  "_id": {
+    "$oid": "67716002b8286e6286d9f2e2"
+  },
+  "user": {
+    "$oid": "675c5e42cca0836b61693e0b"
+  },
+  "text": "Very user-friendly and helpful!",
+  "likes": 3,
+  "dislikes": 0,
+  "likedBy": [
+    {
+      "$oid": "67641ebc6068d7d9aee15e19"
+    },
+    {
+      "$oid": "675c5e42cca0836b61693e0b"
+    },
+    {
+      "$oid": "6771b3e646db2c1dc56ac7d8"
+    }
+  ],
+  "dislikedBy": [],
+  "createdAt": {
+    "$date": "2024-12-29T14:43:14.613Z"
+  },
+  "__v": 11
+},
+{
+  "_id": {
+    "$oid": "67716375ce73b7b2de1c6690"
+  },
+  "user": {
+    "$oid": "6771635dce73b7b2de1c6689"
+  },
+  "text": "Nice.",
+  "likes": 1,
+  "dislikes": 0,
+  "likedBy": [
+    {
+      "$oid": "675c5e42cca0836b61693e0b"
+    }
+  ],
+  "dislikedBy": [],
+  "createdAt": {
+    "$date": "2024-12-29T14:57:57.316Z"
+  },
+  "__v": 9
+}]

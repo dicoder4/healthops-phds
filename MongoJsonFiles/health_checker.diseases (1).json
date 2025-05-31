@@ -1,0 +1,236 @@
+[{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0dc"
+  },
+  "disease": "Flu",
+  "symptoms": [
+    "fever",
+    "cough",
+    "headache",
+    "muscle aches",
+    "fatigue"
+  ],
+  "description": "A viral infection that attacks the respiratory system.",
+  "medication": "Antiviral medications like Oseltamivir"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0dd"
+  },
+  "disease": "Cold",
+  "symptoms": [
+    "cough",
+    "runny nose",
+    "sore throat",
+    "sneezing"
+  ],
+  "description": "A viral infection affecting the upper respiratory tract.",
+  "medication": "Over-the-counter medications like acetaminophen for pain relief"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0de"
+  },
+  "disease": "Chickenpox",
+  "symptoms": [
+    "itchy rash",
+    "fever",
+    "headache",
+    "fatigue"
+  ],
+  "description": "A highly contagious viral infection caused by the varicella-zoster virus.",
+  "medication": "Antihistamines for itching, antiviral medication"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0df"
+  },
+  "disease": "Diabetes",
+  "symptoms": [
+    "increased thirst",
+    "frequent urination",
+    "fatigue",
+    "blurry vision"
+  ],
+  "description": "A group of diseases that affect how your body uses blood sugar.",
+  "medication": "Insulin injections, metformin"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e0"
+  },
+  "disease": "Asthma",
+  "symptoms": [
+    "shortness of breath",
+    "wheezing",
+    "chest tightness",
+    "coughing"
+  ],
+  "description": "A condition in which your airways become inflamed and narrow.",
+  "medication": "Inhalers (bronchodilators), corticosteroids"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e1"
+  },
+  "disease": "Migraine",
+  "symptoms": [
+    "severe headache",
+    "nausea",
+    "vomiting",
+    "sensitivity to light"
+  ],
+  "description": "A neurological condition causing intense headaches.",
+  "medication": "Pain relievers like ibuprofen, triptans"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e2"
+  },
+  "disease": "Hypertension",
+  "symptoms": [
+    "headaches",
+    "shortness of breath",
+    "nosebleeds"
+  ],
+  "description": "High blood pressure that can lead to heart disease and stroke.",
+  "medication": "ACE inhibitors, beta-blockers, diuretics"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e3"
+  },
+  "disease": "Gastritis",
+  "symptoms": [
+    "stomach pain",
+    "nausea",
+    "vomiting",
+    "loss of appetite"
+  ],
+  "description": "Inflammation of the stomach lining.",
+  "medication": "Antacids, proton pump inhibitors"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e4"
+  },
+  "disease": "Pneumonia",
+  "symptoms": [
+    "cough",
+    "fever",
+    "difficulty breathing",
+    "chest pain"
+  ],
+  "description": "An infection that inflames the air sacs in one or both lungs.",
+  "medication": "Antibiotics, antiviral medications"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e5"
+  },
+  "disease": "Tuberculosis",
+  "symptoms": [
+    "coughing up blood",
+    "night sweats",
+    "fever",
+    "weight loss"
+  ],
+  "description": "A bacterial infection that primarily affects the lungs.",
+  "medication": "Antibiotics like isoniazid and rifampin"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e6"
+  },
+  "disease": "Arthritis",
+  "symptoms": [
+    "joint pain",
+    "swelling",
+    "stiffness",
+    "reduced mobility"
+  ],
+  "description": "Inflammation of the joints that causes pain and stiffness.",
+  "medication": "Pain relievers, anti-inflammatory drugs, disease-modifying antirheumatic drugs"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e7"
+  },
+  "disease": "Anemia",
+  "symptoms": [
+    "fatigue",
+    "weakness",
+    "pale skin",
+    "shortness of breath"
+  ],
+  "description": "A condition in which you lack enough healthy red blood cells.",
+  "medication": "Iron supplements, vitamin B12, folic acid"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e8"
+  },
+  "disease": "Osteoporosis",
+  "symptoms": [
+    "back pain",
+    "loss of height",
+    "bone fractures"
+  ],
+  "description": "A condition that weakens bones, making them fragile and more likely to break.",
+  "medication": "Calcium, vitamin D supplements, bisphosphonates"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0e9"
+  },
+  "disease": "Epilepsy",
+  "symptoms": [
+    "seizures",
+    "staring spells",
+    "uncontrollable jerking movements"
+  ],
+  "description": "A neurological disorder characterized by recurrent seizures.",
+  "medication": "Antiepileptic drugs like phenytoin, valproate"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0ea"
+  },
+  "disease": "Heart Disease",
+  "symptoms": [
+    "chest pain",
+    "shortness of breath",
+    "fatigue",
+    "dizziness"
+  ],
+  "description": "A range of conditions that affect the heart, including coronary artery disease.",
+  "medication": "Statins, aspirin, beta-blockers"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0eb"
+  },
+  "disease": "Shingles",
+  "symptoms": [
+    "painful rash",
+    "blisters",
+    "fever",
+    "headache"
+  ],
+  "description": "A viral infection caused by the varicella-zoster virus, which also causes chickenpox.",
+  "medication": "Antiviral medications like acyclovir"
+},
+{
+  "_id": {
+    "$oid": "675ab2a43cb5a49af186a0ec"
+  },
+  "disease": "Celiac Disease",
+  "symptoms": [
+    "abdominal bloating",
+    "diarrhea",
+    "fatigue",
+    "weight loss"
+  ],
+  "description": "An immune reaction to eating gluten, a protein found in wheat.",
+  "medication": "Gluten-free diet"
+}]
