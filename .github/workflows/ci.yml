@@ -58,6 +58,7 @@ jobs:
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
       MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST }}
       SESSION_SECRET: dummy-secret
       NODE_ENV: test
 
