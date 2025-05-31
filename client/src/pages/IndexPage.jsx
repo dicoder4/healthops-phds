@@ -276,6 +276,7 @@ const validateForm = async (e) => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ symptoms: selectedSymptoms }),
     });
 

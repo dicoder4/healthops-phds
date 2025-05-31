@@ -21,7 +21,9 @@ const HealthMetrics = () => {
 
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/health-metrics/data`)
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/health-metrics/data`, {
+    credentials: 'include',
+  })
       .then(res => res.json())
       .then(data => {
         setUsername(data.username);
@@ -44,6 +46,7 @@ const HealthMetrics = () => {
     const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/metrics`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
   body: JSON.stringify({
     username,
     weight: Number(weight),

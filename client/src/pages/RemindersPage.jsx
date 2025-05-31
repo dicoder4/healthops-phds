@@ -11,7 +11,9 @@ const Reminders = () => {
   const [form, setForm] = useState({ text: '', time: '', syncToCalendar: false });
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/data`)
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/data`, {
+  credentials: 'include'
+})
       .then(res => res.json())
       .then(data => {
         setReminders(data.reminders || []);
@@ -25,13 +27,17 @@ const Reminders = () => {
     await fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/add`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ ...form, userTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     });
     window.location.reload();
   };
 
   const handleComplete = async (id) => {
-    await fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/complete/${id}`, { method: 'POST' });
+    await fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/complete/${id}`, {
+  method: 'POST',
+  credentials: 'include'
+});
     window.location.reload();
   };
 
@@ -39,6 +45,7 @@ const Reminders = () => {
     await fetch(`${process.env.REACT_APP_BACKEND_URL}/reminders/delete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ reminderId }),
     });
     window.location.reload();

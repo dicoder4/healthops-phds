@@ -27,6 +27,7 @@ document.getElementById('profile-form').addEventListener('submit', function (e) 
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
             gmail: gmail,
             phNo: phNo,

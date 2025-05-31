@@ -9,7 +9,9 @@ const FitnessLogs = () => {
 const [gender, setGender] = useState('');
 
   const fetchFitnessLogs = async () => {
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/fitnessLogs`);
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/fitnessLogs`, {
+    credentials: 'include',  // <--- add this here
+  });
     const data = await res.json();
     setUser(data.user);
     setGender(data.user.gender); // add this line
@@ -33,6 +35,7 @@ const [gender, setGender] = useState('');
     const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/update-goals`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',  // <--- add this here
       body: JSON.stringify(body),
     });
 
