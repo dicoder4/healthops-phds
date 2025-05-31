@@ -41,11 +41,17 @@ const HealthMetrics = () => {
     const steps = prompt('Enter your steps:');
     const heartRate = prompt('Enter your heart rate (bpm):');
 
-    const res = await fetch('/metrics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, weight: Number(weight), steps: Number(steps), heartRate: Number(heartRate) }),
-    });
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/metrics`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    username,
+    weight: Number(weight),
+    steps: Number(steps),
+    heartRate: Number(heartRate)
+  }),
+});
+
     const data = await res.json();
     if (data.error) return alert(data.error);
     setMessage(data.message);

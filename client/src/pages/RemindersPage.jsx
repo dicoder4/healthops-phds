@@ -146,7 +146,13 @@ const Reminders = () => {
           ) : (
             <p className="reminders-calendar-message">
               Your Google Calendar is not connected. 
-              <a href="http://localhost:4000/auth/google" className="reminders-link">Connect Google Calendar</a>
+              <a
+  href={`${process.env.REACT_APP_BACKEND_URL}/auth/google`}
+  className="reminders-link"
+>
+  Connect Google Calendar
+</a>
+
             </p>
           )}
         </div>
