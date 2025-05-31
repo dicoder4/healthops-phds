@@ -83,6 +83,11 @@ jobs:
         run: CI=false npm run build
         working-directory: ./client
 
+      - name: 🧪 Run Frontend Tests with Coverage
+        run: npm test -- --coverage --watchAll=false
+        working-directory: ./client
+      
+
       - name: 🔍 Run ESLint
         run: npm run lint
         working-directory: ./server
