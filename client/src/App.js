@@ -15,7 +15,7 @@ const ProtectedRoute = ({ children }) => {
   const [userSession, setUserSession] = useState(null);
 
   useEffect(() => {
-    fetch('/api/current_user', { credentials: 'include' })
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/current_user`, { credentials: 'include' })
  // credentials needed for session cookies
       .then(res => res.ok ? res.json() : null)
       .then(data => {

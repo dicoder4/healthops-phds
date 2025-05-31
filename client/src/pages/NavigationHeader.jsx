@@ -53,7 +53,7 @@ const NavigationHeader = () => {
     if (validateEmail(gmail) && validatePhone(phNo)) {
       try {
         const response = await axios.put(
-  '/api/users/update',  // full backend URL
+  `${process.env.REACT_APP_BACKEND_URL}/api/users/update`,  // full backend URL
   { gmail, phNo },
   {
     withCredentials: true // this is crucial for session support

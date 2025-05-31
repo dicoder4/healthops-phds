@@ -40,8 +40,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: isProduction,                       // HTTPS only in production
-    sameSite: isProduction ? 'none' : 'lax',    // Cross-site support only in production
+    secure: true,                         // HTTPS only in production
+    sameSite: 'None',      // Cross-site support only in production
     maxAge: 60 * 60 * 1000                      // 1 hour
   }
 }));

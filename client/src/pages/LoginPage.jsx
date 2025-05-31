@@ -21,7 +21,8 @@ const handleSubmit = async (e) => {
   console.log("[LOGIN] Submitting form");
   console.log("[LOGIN] Username:", username);
   console.log("[LOGIN] Password:", password);
-
+  // Add this line here to log the backend URL
+  console.log("[LOGIN] Backend URL:", `${process.env.REACT_APP_BACKEND_URL}/api/login`);
   try {
     const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/login`, {
       method: 'POST',
