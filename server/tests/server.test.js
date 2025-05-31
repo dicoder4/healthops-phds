@@ -5,7 +5,7 @@ dotenv.config();
 
 import app from '../server.js';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/healthops_test';
+const MONGO_URI = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/healthops_test';
 
 beforeAll(async () => {
   await mongoose.connect(MONGO_URI, {
@@ -15,7 +15,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.connection.dropDatabase();
+  // Only drop test DB (NEVER prod)
+  if (MONGO_URI.includes('health_checker_test') || MONGO_URI.includes('localhost')) {
+    await mongoose.connection.dropDatabase();
+  }
   await mongoose.connection.close();
 });
 
