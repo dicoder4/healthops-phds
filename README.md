@@ -72,6 +72,62 @@ GOOGLE_REDIRECT_URI=<RedirectURL>
 ---
 
 
+## 🧪 Getting Started
+
+Follow these steps to set up the project locally:
+
+### 1. Clone the Repo
+
+```bash
+git clone https://github.com/dicoder4/healthops-phds.git
+cd healthops-phds
+```
+
+### 2. Set Up Environment Variables
+
+* Create a `.env` file inside the `server/` folder:
+
+```env
+PORT=4000
+MONGO_URI=<your-mongodb-uri>
+SESSION_SECRET=<your-session-secret>
+GOOGLE_CLIENT_ID=<your-oauth-client-id>
+GOOGLE_CLIENT_SECRET=<your-oauth-secret>
+GOOGLE_REDIRECT_URI=http://localhost:4000/oauth2callback
+```
+
+### 3. Create a MongoDB Cluster Collection:
+```bash
+Create Database-health_checker
+Add food,reviews,exercise and diseases .json files- available in the root folder-MongoJsonFiles
+```
+Also, create an empty `user.json` file manually in your `folder-mongo-json/` directory:
+
+### 4. Start the App
+
+Open two terminals:
+
+**Terminal 1 – Backend**
+
+```bash
+cd server
+npm install
+npm start
+```
+
+**Terminal 2 – Frontend**
+
+```bash
+cd client
+npm install
+npm start
+```
+
+The app will be live at [http://localhost:3000](http://localhost:3000)
+
+---
+
+
 
 ## 🔮 Testing
 
@@ -102,7 +158,6 @@ cd server && npm run test
 * Lighthouse CI for performance budget
 
 ---
-
 ## 📄 License
 
 MIT License © 2025 Meghmilan Enterprises
@@ -114,3 +169,5 @@ MIT License © 2025 Meghmilan Enterprises
 * Aditri B Ray
 * Diya D Shah
 * Contributions welcome via pull requests!
+
+---
