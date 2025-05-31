@@ -26,10 +26,22 @@ const __dirname = path.resolve();
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://healthops-phds-5blg-jofv5rt2l-aditri-b-rays-projects.vercel.app'
+];
+
 app.use(cors({
-  origin: ['http://localhost:3000','https://healthops-phds-1u0ojo5m2-aditri-b-rays-projects.vercel.app'],
+  origin: allowedOrigins,
   credentials: true
 }));
+
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+
 
 // Middleware
 app.use(express.json());
