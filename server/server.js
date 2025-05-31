@@ -27,7 +27,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000','https://medsquire-mern.vercel.app'],
+  origin: ['http://localhost:3000', 'https://medsquire-mern.vercel.app', 'https://medsquire-mern-cd.vercel.app'],
   credentials: true
 }));
 

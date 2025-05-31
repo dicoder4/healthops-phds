@@ -37,7 +37,7 @@ const handleSubmit = async (e) => {
     console.log("[LOGIN] Response data:", data);
 
 if (data.success) {
-  window.location.href = '/homePage';
+  navigate('/homePage');
 } else {
   setErrorMessage(data.message || 'Login failed');
   setFormShake(true);
