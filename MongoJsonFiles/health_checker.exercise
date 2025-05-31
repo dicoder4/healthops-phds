@@ -1,0 +1,54 @@
+[{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b86"
+  },
+  "routine": "extreme",
+  "exercise_name": "HIIT",
+  "duration": "30 minutes",
+  "calories_burned": 400
+},
+{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b87"
+  },
+  "routine": "extreme",
+  "exercise_name": "Weight Lifting",
+  "duration": "45 minutes",
+  "calories_burned": 350
+},
+{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b88"
+  },
+  "routine": "medium",
+  "exercise_name": "Jogging",
+  "duration": "45 minutes",
+  "calories_burned": 300
+},
+{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b89"
+  },
+  "routine": "medium",
+  "exercise_name": "Cycling",
+  "duration": "60 minutes",
+  "calories_burned": 350
+},
+{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b8a"
+  },
+  "routine": "normal",
+  "exercise_name": "Yoga",
+  "duration": "60 minutes",
+  "calories_burned": 200
+},
+{
+  "_id": {
+    "$oid": "67608e09e890f624ec628b8b"
+  },
+  "routine": "normal",
+  "exercise_name": "Walking",
+  "duration": "45 minutes",
+  "calories_burned": 180
+}]
