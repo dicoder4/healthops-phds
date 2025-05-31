@@ -27,7 +27,7 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000','https://medsquire-mern-cd.vercel.app','https://healthops-phds-1u0ojo5m2-aditri-b-rays-projects.vercel.app'],
+  origin: ['http://localhost:3000','https://healthops-phds-1u0ojo5m2-aditri-b-rays-projects.vercel.app'],
   credentials: true
 }));
 
