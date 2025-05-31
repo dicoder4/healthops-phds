@@ -1,4 +1,5 @@
 # 📈 HealthOps – Smart Health Monitoring App
+(Personal Health Data Logging System)
 
 **HealthOps** is a full-stack web application that helps users track health metrics, receive fitness recommendations, set health reminders, and manage medical records. The app is built for reliability, security, and real-time insight.
 
