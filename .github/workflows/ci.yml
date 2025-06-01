@@ -158,3 +158,25 @@ jobs:
         run: |
           cd client
           vercel --prod --token $VERCEL_TOKEN --confirm
+
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: ☁️ Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: 🐳 Build & Push Docker Image to Google Container Registry
+        run: |
+          gcloud builds submit ./server --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend
+
+      - name: 🚀 Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated
