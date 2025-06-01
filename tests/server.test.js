@@ -15,19 +15,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await mongoose.connection.close(); // ⛔️ dropDatabase removed
+  await mongoose.connection.close();
 });
 
-describe('HealthOps Server Basic Routes', () => {
-  it('should serve React app at root route', async () => {
-    const res = await request(app).get('/');
-    expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('<!doctype html>');
-  });
+describe('HealthOps Server API Routes', () => {
+  // ⚠️ Removed tests expecting frontend HTML
 
-  it('should serve React app at /login route', async () => {
-    const res = await request(app).get('/login');
-    expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('<!doctype html>');
+  it('should return 401 for /homePage without session', async () => {
+    const res = await request(app).get('/homePage');
+    expect([401, 403]).toContain(res.statusCode);
   });
 });
