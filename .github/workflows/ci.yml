@@ -220,9 +220,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: 📦 Install Firebase CLI
-        run: npm install -g firebase-tools
-
       - name: 🔧 Build React App
         run: |
           cd client
