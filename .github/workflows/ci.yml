@@ -28,7 +28,7 @@ jobs:
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
             server/package-lock.json
@@ -71,7 +71,7 @@ jobs:
 
     services:
       mongo:
-        image: mongo:${{ env.MONGO_VERSION }}
+        image: mongo:6
         ports:
           - 27017:27017
         options: >-
@@ -97,7 +97,7 @@ jobs:
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: |
             server/package-lock.json
@@ -218,7 +218,7 @@ jobs:
 
     services:
       mongo:
-        image: mongo:${{ env.MONGO_VERSION }}
+        image: mongo:6
         ports:
           - 27017:27017
         options: >-
@@ -243,7 +243,7 @@ jobs:
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
 
@@ -277,9 +277,9 @@ jobs:
       - name: 📈 Setup and Start Prometheus
         run: |
           # Download and extract Prometheus
-          curl -sSL https://github.com/prometheus/prometheus/releases/download/v${{ env.PROMETHEUS_VERSION }}/prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64.tar.gz -o prometheus.tar.gz
+          curl -sSL https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz -o prometheus.tar.gz
           tar xzf prometheus.tar.gz
-          cd prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64
+          cd prometheus-2.48.0.linux-amd64
           
           # Create Prometheus configuration
           cat > prometheus.yml << EOF
@@ -362,8 +362,8 @@ jobs:
           echo "Cleaning up background processes..."
           
           # Stop Prometheus
-          if [ -f prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64/prometheus.pid ]; then
-            PROM_PID=$(cat prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64/prometheus.pid)
+          if [ -f prometheus-2.48.0.linux-amd64/prometheus.pid ]; then
+            PROM_PID=$(cat prometheus-2.48.0.linux-amd64/prometheus.pid)
             if kill -TERM $PROM_PID 2>/dev/null; then
               echo "✅ Prometheus stopped gracefully"
             else
@@ -411,7 +411,7 @@ jobs:
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
 
