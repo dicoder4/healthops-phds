@@ -193,10 +193,15 @@ jobs:
       - name: 🔍 Check Prometheus metrics endpoint
         run: curl -s http://localhost:4000/metrics | head -n 20
 
-      - name: 🛑 Kill backend and Prometheus servers
+      - name: 🔍 Check Prometheus metrics endpoint
+        run: curl -s http://localhost:4000/metrics | head -n 20
+
+      - name: ⏳ Keep Prometheus & Backend Alive for Inspection
         run: |
-          kill $(cat backend_pid.txt) || echo "Backend already stopped"
-          kill $(cat prometheus_pid.txt) || echo "Prometheus already stopped"
+          echo "Waiting 60 seconds to allow scraping..."
+          sleep 60
+          echo "Prometheus logs:"
+          tail -n 50 prometheus-2.48.0.linux-amd64/prometheus.log || true
 
 
   
