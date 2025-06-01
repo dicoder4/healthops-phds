@@ -146,7 +146,10 @@ jobs:
           --health-retries 5
 
     env:
-      PORT: ${{ secrets.PORT }}
+      GOOGLE_CLIENT_ID: dummy
+      GOOGLE_CLIENT_SECRET: dummy
+      GOOGLE_REDIRECT_URI: http://localhost:4000/oauth2callback
+      PORT: 4000
       MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
       SESSION_SECRET: dummy-secret
       NODE_ENV: test
@@ -175,26 +178,26 @@ jobs:
           curl -LO https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz
           tar xvf prometheus-2.48.0.linux-amd64.tar.gz
           cd prometheus-2.48.0.linux-amd64
-          # Create a minimal prometheus.yml with your backend target
           echo "
           global:
             scrape_interval: 15s
           scrape_configs:
             - job_name: 'healthops-backend'
               static_configs:
-                - targets: ['host.docker.internal:9100'] # Or localhost if on runner directly
+                - targets: ['localhost:4000']
           " > prometheus.yml
           ./prometheus --config.file=prometheus.yml &
           echo $! > ../prometheus_pid.txt
           sleep 15
 
       - name: 🔍 Check Prometheus metrics endpoint
-        run: curl -s http://localhost:9100/metrics | head -n 20
+        run: curl -s http://localhost:4000/metrics | head -n 20
 
       - name: 🛑 Kill backend and Prometheus servers
         run: |
-          kill $(cat backend_pid.txt)
-          kill $(cat prometheus_pid.txt)
+          kill $(cat backend_pid.txt) || echo "Backend already stopped"
+          kill $(cat prometheus_pid.txt) || echo "Prometheus already stopped"
+
 
   
 

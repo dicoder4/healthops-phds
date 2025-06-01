@@ -84,3 +84,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 
 export default app;
+import promBundle from 'express-prom-bundle';
+const metricsMiddleware = promBundle({ includeMethod: true });
+app.use(metricsMiddleware);
+
