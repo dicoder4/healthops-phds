@@ -167,17 +167,21 @@ jobs:
         run: npm install
         working-directory: ./server
 
-      - name: 🚀 Start Backend with Prometheus Metrics in background
+      - name: 🚀 Start Backend and Prometheus in Same Shell
         run: |
-          node server/server.js &
-          echo $! > backend_pid.txt
-          sleep 10  # Wait for server to start
+          # Start backend with metrics enabled
+          nohup node server/server.js > backend.log 2>&1 &
+          BACKEND_PID=$!
 
-      - name: 📥 Download and Start Prometheus
-        run: |
+          echo "Waiting for backend to start..."
+          sleep 10
+
+          # Download Prometheus
           curl -LO https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz
           tar xvf prometheus-2.48.0.linux-amd64.tar.gz
           cd prometheus-2.48.0.linux-amd64
+
+          # Create minimal Prometheus config
           echo "
           global:
             scrape_interval: 15s
@@ -186,25 +190,25 @@ jobs:
               static_configs:
                 - targets: ['localhost:4000']
           " > prometheus.yml
-          ./prometheus --config.file=prometheus.yml &
-          echo $! > ../prometheus_pid.txt
+
+          # Start Prometheus
+          nohup ./prometheus --config.file=prometheus.yml > prometheus.log 2>&1 &
+          PROM_PID=$!
+
+          echo "Waiting for Prometheus to scrape metrics..."
           sleep 15
 
-      - name: 🔍 Check Prometheus metrics endpoint
-        run: curl -s http://localhost:4000/metrics | head -n 20
+          echo "==== Backend Metrics ===="
+          curl -s http://localhost:4000/metrics | head -n 20 || echo "❌ Metrics not available!"
 
-      - name: 🔍 Check Prometheus metrics endpoint
-        run: curl -s http://localhost:4000/metrics | head -n 20
+          echo "==== Prometheus Logs ===="
+          tail -n 30 prometheus.log || echo "❌ No Prometheus logs found"
 
-      - name: ⏳ Keep Prometheus & Backend Alive for Inspection
-        run: |
-          echo "Waiting 60 seconds to allow scraping..."
-          sleep 60
-          echo "Prometheus logs:"
-          tail -n 50 prometheus-2.48.0.linux-amd64/prometheus.log || true
+          echo "🧹 Cleaning up background processes..."
+          kill $BACKEND_PID || echo "⚠️ Backend already stopped"
+          kill $PROM_PID || echo "⚠️ Prometheus already stopped"
 
-
-  
+    
 
   deploy:
     name: 🚀 Deploy to Firebase
