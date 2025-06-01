@@ -2,7 +2,7 @@
 // CRITICAL: Load dotenv FIRST before any other imports
 import dotenv from 'dotenv';
 dotenv.config();
-
+const PORT = process.env.PORT || 5000;
 // Now import everything else
 import express from 'express';
 import mongoose from 'mongoose';
