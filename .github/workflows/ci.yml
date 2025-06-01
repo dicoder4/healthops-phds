@@ -2,9 +2,14 @@ name: Full CI - HealthOps MERN Stack
 
 on:
   push:
-    branches: [main]
+    branches: 
+      - main
+      - adi3branch   # ✅ Newly added branch
   pull_request:
-    branches: [main]
+    branches: 
+      - main
+      - adi3branch   # ✅ PRs into this branch will also trigger the CI
+
 
 jobs:
   install-audit:
