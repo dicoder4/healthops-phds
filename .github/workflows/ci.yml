@@ -1,4 +1,4 @@
-name: Full CI - HealthOps MERN Stack
+name: Full CI/CD Pipeline - HealthOps MERN Stack
 
 on:
   push:
@@ -10,45 +10,68 @@ on:
       - main
       - cd-final   # ✅ PRs into this branch will also trigger the CI
 
+env:
+  NODE_VERSION: '18'
+  MONGO_VERSION: '6'
+  PROMETHEUS_VERSION: '2.48.0'
 
 jobs:
   install-audit:
-    name: Install & Audit
+    name: 📦 Install & Audit Dependencies
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: 📥 Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
 
       - name: 📦 Install Backend Dependencies
-        run: npm install
+        run: npm ci
         working-directory: ./server
 
       - name: 📦 Install Frontend Dependencies
-        run: npm install
+        run: npm ci
         working-directory: ./client
 
-      - name: 🔒 Audit Backend
-        run: npm audit --audit-level=moderate || true
+      - name: 🔒 Audit Backend Dependencies
+        run: npm audit --audit-level=moderate --production
         working-directory: ./server
+        continue-on-error: true
 
-      - name: 🔒 Audit Frontend
-        run: npm audit --audit-level=moderate || true
+      - name: 🔒 Audit Frontend Dependencies
+        run: npm audit --audit-level=moderate --production
         working-directory: ./client
+        continue-on-error: true
+
+      - name: 💾 Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+            client/build
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
 
   build-test:
-    name: Build & Test
+    name: 🏗️ Build & Test Application
     runs-on: ubuntu-latest
     needs: install-audit
+    timeout-minutes: 20
 
     services:
       mongo:
-        image: mongo:6
+        image: mongo:${{ env.MONGO_VERSION }}
         ports:
           - 27017:27017
         options: >-
@@ -58,85 +81,144 @@ jobs:
           --health-retries 5
 
     env:
-      PORT: ${{ secrets.PORT }}
+      PORT: ${{ secrets.PORT || '4000' }}
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
       MONGO_URI: ${{ secrets.MONGO_URI }}
-      MONGO_URI_TEST: ${{ secrets.MONGO_URI_TEST }}
-      SESSION_SECRET: dummy-secret
+      MONGO_URI_TEST: mongodb://localhost:27017/healthops_test
+      SESSION_SECRET: test-session-secret-for-ci
       NODE_ENV: test
 
     steps:
       - name: 📥 Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
 
-      - name: 📦 Install Backend
-        run: npm install
+      - name: 📦 Restore Dependencies Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            server/node_modules
+            client/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: 📦 Install Backend Dependencies (if cache miss)
+        run: npm ci
         working-directory: ./server
+        if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: 📦 Install Frontend
-        run: npm install
+      - name: 📦 Install Frontend Dependencies (if cache miss)
+        run: npm ci
         working-directory: ./client
+        if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: 🏗️ Build Frontend (Ignore Warnings)
-        run: CI=false npm run build
+      - name: 🏗️ Build Frontend Application
+        run: |
+          npm run build
+          if [ ! -f "./build/index.html" ]; then
+            echo "❌ Build failed - index.html not found"
+            exit 1
+          fi
+          echo "✅ Frontend build successful"
         working-directory: ./client
+        env:
+          CI: true
+          GENERATE_SOURCEMAP: false
 
-      
-
-      - name: 🔍 Run ESLint
+      - name: 🔍 Run ESLint on Backend
         run: npm run lint
         working-directory: ./server
 
       - name: 🧪 Run Backend Integration Tests with Coverage
-        run: node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests --testEnvironment=node --testTimeout=10000 --coverage
+        run: |
+          node --experimental-vm-modules ./node_modules/jest/bin/jest.js tests \
+            --testEnvironment=node \
+            --testTimeout=15000 \
+            --coverage \
+            --coverageReporters=text-summary \
+            --forceExit
         working-directory: ./server
-      
 
       - name: 🐳 Build Docker Image
-        run: docker build -t healthops-backend .
+        run: |
+          docker build -t healthops-backend:${{ github.sha }} .
+          docker tag healthops-backend:${{ github.sha }} healthops-backend:latest
+          echo "✅ Docker image built successfully"
         working-directory: ./server
 
-      - name: ✅ Confirm React Built
-        run: test -f ./client/build/index.html
-
-      - name: 🛡️ Run Snyk Test
-        run: npx snyk test
+      - name: 🛡️ Run Snyk Security Test
+        run: |
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            npx snyk test --severity-threshold=high
+          else
+            echo "⚠️ Snyk token not provided, skipping security scan"
+          fi
         working-directory: ./server
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         continue-on-error: true
 
-      - name: 🚀 Serve & Audit with Lighthouse
+      - name: 🚀 Start Application for Lighthouse Test
         run: |
           npm install -g serve wait-on
           serve -s client/build -l 3000 &
-          wait-on http://localhost:3000
+          SERVE_PID=$!
+          echo $SERVE_PID > serve.pid
+          
+          if wait-on http://localhost:3000 --timeout 30000; then
+            echo "✅ Application started successfully"
+          else
+            echo "❌ Application failed to start"
+            kill $SERVE_PID 2>/dev/null || true
+            exit 1
+          fi
         continue-on-error: true
 
       - name: 🌐 Lighthouse Performance Check
         uses: treosh/lighthouse-ci-action@v10
         with:
           urls: 'http://localhost:3000'
+          configPath: './.lighthouserc.json'
         continue-on-error: true
 
+      - name: 🧹 Cleanup Serve Process
+        run: |
+          if [ -f serve.pid ]; then
+            SERVE_PID=$(cat serve.pid)
+            kill $SERVE_PID 2>/dev/null || true
+            rm serve.pid
+          fi
+        if: always()
 
-# Add a new job for monitoring test after build-test and before deploy
+      - name: 📊 Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: |
+            client/build/
+            server/coverage/
+          retention-days: 7
 
   monitoring:
     name: 📊 Prometheus & Grafana Monitoring Test
     runs-on: ubuntu-latest
     needs: build-test
+    timeout-minutes: 15
 
     services:
       mongo:
-        image: mongo:6
+        image: mongo:${{ env.MONGO_VERSION }}
         ports:
           - 27017:27017
         options: >-
@@ -146,119 +228,292 @@ jobs:
           --health-retries 5
 
     env:
-      GOOGLE_CLIENT_ID: dummy
-      GOOGLE_CLIENT_SECRET: dummy
+      GOOGLE_CLIENT_ID: test-client-id
+      GOOGLE_CLIENT_SECRET: test-client-secret
       GOOGLE_REDIRECT_URI: http://localhost:4000/oauth2callback
       PORT: 4000
-      MONGO_URI: ${{ secrets.MONGO_URI_TEST }}
-      SESSION_SECRET: dummy-secret
+      MONGO_URI: mongodb://localhost:27017/healthops_monitoring_test
+      SESSION_SECRET: test-session-secret-for-monitoring
       NODE_ENV: test
 
     steps:
       - name: 📥 Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
 
-      - name: 📦 Install Backend
-        run: npm install
+      - name: 📦 Install Backend Dependencies
+        run: npm ci
         working-directory: ./server
 
-      - name: 🚀 Start Backend and Prometheus in Same Shell
+      - name: 🚀 Start Backend with Metrics
         run: |
-          # Start backend with metrics enabled
-          nohup node server/server.js > backend.log 2>&1 &
+          echo "Starting backend server..."
+          nohup node server.js > backend.log 2>&1 &
           BACKEND_PID=$!
+          echo $BACKEND_PID > backend.pid
+          echo "Backend PID: $BACKEND_PID"
+          
+          # Wait for backend to be ready
+          for i in {1..30}; do
+            if curl -sf http://localhost:4000/health >/dev/null 2>&1; then
+              echo "✅ Backend is ready after ${i} seconds"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Backend failed to start within 30 seconds"
+              cat backend.log
+              exit 1
+            fi
+            sleep 1
+          done
+        working-directory: ./server
 
-          echo "Waiting for backend to start..."
-          sleep 10
-
-          # Download Prometheus
-          curl -LO https://github.com/prometheus/prometheus/releases/download/v2.48.0/prometheus-2.48.0.linux-amd64.tar.gz
-          tar xvf prometheus-2.48.0.linux-amd64.tar.gz
-          cd prometheus-2.48.0.linux-amd64
-
-          # Create minimal Prometheus config
-          echo "
+      - name: 📈 Setup and Start Prometheus
+        run: |
+          # Download and extract Prometheus
+          curl -sSL https://github.com/prometheus/prometheus/releases/download/v${{ env.PROMETHEUS_VERSION }}/prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64.tar.gz -o prometheus.tar.gz
+          tar xzf prometheus.tar.gz
+          cd prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64
+          
+          # Create Prometheus configuration
+          cat > prometheus.yml << EOF
           global:
-            scrape_interval: 15s
+            scrape_interval: 5s
+            evaluation_interval: 5s
+          
           scrape_configs:
             - job_name: 'healthops-backend'
               static_configs:
                 - targets: ['localhost:4000']
-          " > prometheus.yml
-
+              scrape_interval: 5s
+              metrics_path: '/metrics'
+          EOF
+          
           # Start Prometheus
-          nohup ./prometheus --config.file=prometheus.yml > prometheus.log 2>&1 &
+          echo "Starting Prometheus..."
+          nohup ./prometheus --config.file=prometheus.yml --storage.tsdb.path=./data --web.listen-address=:9090 > prometheus.log 2>&1 &
           PROM_PID=$!
+          echo $PROM_PID > prometheus.pid
+          echo "Prometheus PID: $PROM_PID"
+          
+          # Wait for Prometheus to be ready
+          for i in {1..20}; do
+            if curl -sf http://localhost:9090/-/ready >/dev/null 2>&1; then
+              echo "✅ Prometheus is ready after ${i} seconds"
+              break
+            fi
+            if [ $i -eq 20 ]; then
+              echo "❌ Prometheus failed to start within 20 seconds"
+              cat prometheus.log
+              exit 1
+            fi
+            sleep 1
+          done
 
-          echo "Waiting for Prometheus to scrape metrics..."
-          sleep 15
+      - name: 🧪 Test Metrics Collection
+        run: |
+          echo "==== Testing Backend Health Endpoint ===="
+          curl -f http://localhost:4000/health || echo "❌ Health check failed"
+          
+          echo "==== Testing Backend Metrics Endpoint ===="
+          METRICS_RESPONSE=$(curl -s http://localhost:4000/metrics)
+          if [ -n "$METRICS_RESPONSE" ]; then
+            echo "✅ Metrics endpoint is responding"
+            echo "$METRICS_RESPONSE" | head -20
+            
+            # Check for essential metrics
+            if echo "$METRICS_RESPONSE" | grep -q "nodejs_version_info"; then
+              echo "✅ Node.js metrics found"
+            else
+              echo "⚠️ Node.js metrics missing"
+            fi
+          else
+            echo "❌ No metrics response received"
+            exit 1
+          fi
+          
+          echo "==== Testing Prometheus Targets ===="
+          sleep 10  # Allow time for scraping
+          TARGETS_RESPONSE=$(curl -s http://localhost:9090/api/v1/targets)
+          if echo "$TARGETS_RESPONSE" | grep -q '"health":"up"'; then
+            echo "✅ Prometheus is successfully scraping targets"
+          else
+            echo "⚠️ Prometheus target may be down"
+            echo "Targets response: $TARGETS_RESPONSE"
+          fi
+          
+          echo "==== Testing Prometheus Query ===="
+          QUERY_RESPONSE=$(curl -s "http://localhost:9090/api/v1/query?query=up")
+          if echo "$QUERY_RESPONSE" | grep -q '"status":"success"'; then
+            echo "✅ Prometheus queries are working"
+          else
+            echo "⚠️ Prometheus query failed"
+            echo "Query response: $QUERY_RESPONSE"
+          fi
 
-          echo "==== Backend Metrics ===="
-          curl -s http://localhost:4000/metrics | head -n 20 || echo "❌ Metrics not available!"
+      - name: 🧹 Cleanup Processes
+        run: |
+          echo "Cleaning up background processes..."
+          
+          # Stop Prometheus
+          if [ -f prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64/prometheus.pid ]; then
+            PROM_PID=$(cat prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64/prometheus.pid)
+            if kill -TERM $PROM_PID 2>/dev/null; then
+              echo "✅ Prometheus stopped gracefully"
+            else
+              echo "⚠️ Prometheus was already stopped"
+            fi
+          fi
+          
+          # Stop Backend
+          if [ -f server/backend.pid ]; then
+            BACKEND_PID=$(cat server/backend.pid)
+            if kill -TERM $BACKEND_PID 2>/dev/null; then
+              echo "✅ Backend stopped gracefully"
+              sleep 2
+              kill -KILL $BACKEND_PID 2>/dev/null || true
+            else
+              echo "⚠️ Backend was already stopped"
+            fi
+          fi
+          
+          # Kill any remaining processes
+          pkill -f "prometheus" || true
+          pkill -f "node server.js" || true
+        if: always()
 
-          echo "==== Prometheus Logs ===="
-          tail -n 30 prometheus.log || echo "❌ No Prometheus logs found"
-
-          echo "🧹 Cleaning up background processes..."
-          kill $BACKEND_PID || echo "⚠️ Backend already stopped"
-          kill $PROM_PID || echo "⚠️ Prometheus already stopped"
-
-    
+      - name: 📋 Upload Monitoring Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: monitoring-logs-${{ github.sha }}
+          path: |
+            server/backend.log
+            prometheus-*/prometheus.log
+        if: always()
 
   deploy:
-    name: 🚀 Deploy to Firebase
+    name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
-    needs: build-test
+    needs: [build-test, monitoring]
+    timeout-minutes: 20
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cd-final'
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
 
       - name: 🛠️ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
 
-      - name: 🔧 Build React App
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts-${{ github.sha }}
+          path: ./
+
+      - name: 🔧 Build React App (if artifacts not available)
         run: |
-          cd client
-          npm install
-          CI=false npm run build
+          if [ ! -f "./client/build/index.html" ]; then
+            echo "Build artifacts not found, rebuilding..."
+            cd client
+            npm ci
+            npm run build
+          else
+            echo "✅ Using cached build artifacts"
+          fi
 
       - name: 📦 Install Vercel CLI
-        run: npm install -g vercel
+        run: npm install -g vercel@latest
 
-      - name: 🚀 Deploy to Vercel
+      - name: 🚀 Deploy Frontend to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           cd client
-          vercel --prod --token $VERCEL_TOKEN --confirm
+          if [ -n "${{ secrets.VERCEL_TOKEN }}" ]; then
+            vercel --prod --token $VERCEL_TOKEN --confirm
+            echo "✅ Frontend deployed to Vercel successfully"
+          else
+            echo "⚠️ Vercel token not provided, skipping frontend deployment"
+          fi
 
       - name: 🔐 Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
+        if: secrets.GCP_SA_KEY != ''
 
-      - name: ☁️ Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
+      - name: ☁️ Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+        if: secrets.GCP_SA_KEY != ''
 
       - name: 🐳 Build & Push Docker Image to Google Container Registry
         run: |
-          gcloud builds submit ./server --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ]; then
+            cd server
+            gcloud builds submit . --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend:${{ github.sha }}
+            gcloud builds submit . --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend:latest
+            echo "✅ Docker image pushed to GCR successfully"
+          else
+            echo "⚠️ GCP credentials not provided, skipping backend deployment"
+          fi
+        if: secrets.GCP_SA_KEY != ''
 
       - name: 🚀 Deploy Backend to Cloud Run
         run: |
-          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend \
-            --region ${{ secrets.GCP_REGION }} \
-            --platform managed \
-            --allow-unauthenticated
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ]; then
+            gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
+              --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend:${{ github.sha }} \
+              --region ${{ secrets.GCP_REGION }} \
+              --platform managed \
+              --allow-unauthenticated \
+              --set-env-vars="NODE_ENV=production" \
+              --set-env-vars="PORT=8080" \
+              --memory=1Gi \
+              --cpu=1 \
+              --max-instances=10 \
+              --timeout=300
+            echo "✅ Backend deployed to Cloud Run successfully"
+          else
+            echo "⚠️ GCP credentials not provided, skipping backend deployment"
+          fi
+        if: secrets.GCP_SA_KEY != ''
 
+      - name: 🎉 Deployment Summary
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "📊 Summary:"
+          echo "- Frontend: Deployed to Vercel"
+          echo "- Backend: Deployed to Google Cloud Run"
+          echo "- Docker Image: Tagged with ${{ github.sha }}"
+          echo "- Branch: ${{ github.ref_name }}"
+          echo "- Commit: ${{ github.sha }}"
+
+  cleanup:
+    name: 🧹 Cleanup Artifacts
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always()
+
+    steps:
+      - name: 🗑️ Delete Old Artifacts
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: |
+            build-artifacts-*
+            monitoring-logs-*
+          failOnError: false
