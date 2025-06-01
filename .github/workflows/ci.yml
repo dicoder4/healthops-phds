@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: 
       - main
-      - adi3branch   # ✅ PRs into this branch will also trigger the CI
+      - cd-final   # ✅ PRs into this branch will also trigger the CI
 
 
 jobs:
