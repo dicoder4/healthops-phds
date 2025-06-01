@@ -126,62 +126,8 @@ jobs:
           urls: 'http://localhost:3000'
         continue-on-error: true
 
-  deploy:
-    name: 🚀 Deploy to Firebase
-    runs-on: ubuntu-latest
-    needs: build-test
 
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-
-      - name: 🛠️ Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: 📦 Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: 🔧 Build React App
-        run: |
-          cd client
-          npm install
-          CI=false npm run build
-
-      - name: 📦 Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: 🚀 Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          cd client
-          vercel --prod --token $VERCEL_TOKEN --confirm
-
-      - name: 🔐 Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      - name: ☁️ Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: 🐳 Build & Push Docker Image to Google Container Registry
-        run: |
-          gcloud builds submit ./server --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend
-
-      - name: 🚀 Deploy Backend to Cloud Run
-        run: |
-          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend \
-            --region ${{ secrets.GCP_REGION }} \
-            --platform managed \
-            --allow-unauthenticated
-
-    # Add a new job for monitoring test after build-test and before deploy
+# Add a new job for monitoring test after build-test and before deploy
 
   monitoring:
     name: 📊 Prometheus & Grafana Monitoring Test
@@ -249,4 +195,61 @@ jobs:
         run: |
           kill $(cat backend_pid.txt)
           kill $(cat prometheus_pid.txt)
-    
+
+  
+
+  deploy:
+    name: 🚀 Deploy to Firebase
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🛠️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 📦 Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: 🔧 Build React App
+        run: |
+          cd client
+          npm install
+          CI=false npm run build
+
+      - name: 📦 Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: 🚀 Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd client
+          vercel --prod --token $VERCEL_TOKEN --confirm
+
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: ☁️ Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: 🐳 Build & Push Docker Image to Google Container Registry
+        run: |
+          gcloud builds submit ./server --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend
+
+      - name: 🚀 Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.GCP_SERVICE_NAME }} \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/healthops-backend \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated
+
