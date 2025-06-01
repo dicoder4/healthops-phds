@@ -82,7 +82,7 @@ router.get('/oauth2callback', async (req, res) => {
     user.googleRefreshToken = tokens.refresh_token;
     await user.save();
 
-    res.redirect('https://healthops-phds-5blg.vercel.app/reminders');
+    res.redirect('https://healthops-phds.vercel.app/reminders');
   } catch (error) {
     console.error('OAuth2 error:', error);
     res.status(500).send('OAuth2 callback error');

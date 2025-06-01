@@ -28,7 +28,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://healthops-phds-5blg.vercel.app'
+  'https://healthops-phds.vercel.app'
 ];
 
 app.use(cors({
