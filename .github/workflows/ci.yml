@@ -4,7 +4,7 @@ on:
   push:
     branches: 
       - main
-      - adi3branch   # ✅ Newly added branch
+      - cd-final   # ✅ Newly added branch
   pull_request:
     branches: 
       - main
