@@ -221,7 +221,7 @@ function WelcomeMessage({ user }) {
             <div className="content">
               <WelcomeMessage user={user} />
               <div className="containertype">
-      <p className="typing-text">How are you doing today?</p>
+      <p className="typing-text">How are you doing?</p>
     </div>
               <p className="grow-text"><i>Keep up the great work! Track your daily routines and stay on top of your health goals.</i></p>
               <div className="Character">
