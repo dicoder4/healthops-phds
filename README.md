@@ -7,8 +7,7 @@
 
 ## 🔗 Live Demo
 
-* Frontend: [https://your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)
-* Backend (Google Cloud Run / App Engine): [https://api.healthops.example.com](https://api.healthops.example.com)
+[https://your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)](https://client-lovat-ten.vercel.app/)
 
 *Note: Full functionality available when both frontend and backend are active.*
 
