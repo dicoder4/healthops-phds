@@ -11,9 +11,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh; /* Changed from height to min-height */
+    overflow-x: hidden; /* Prevent horizontal scroll */
     background-color: #f4f4f9;
+    padding: 20px; /* Add padding for mobile */
   }
   
   /* Background Image */
@@ -27,26 +28,28 @@
     z-index: -1;
   }
   
-  /* Registration Form Container */
-/* Registration Form Container */
-.register {
-  justify-content: center;
+  /* Registration Form Container - Made Responsive */
+  .register {
+    justify-content: center;
     align-items: center;
     position: relative;
-    padding: 60px;
+    padding: 40px 30px; /* Reduced padding */
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(15px);
     border: 1px solid #fff;
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     border-right: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 20px;
-    width: 500px;
+    width: 100%;
+    max-width: 500px; /* Changed to max-width for responsiveness */
+    min-width: 320px; /* Minimum width for very small screens */
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px; /* Reduced gap */
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
     z-index: 1;
-    animation: glow-border 2s ease-in-out infinite alternate;  /* Apply glow effect */
+    animation: glow-border 2s ease-in-out infinite alternate;
+    margin: 20px auto; /* Center and add margin */
   }
   
   /* Glowing and Blinking Border Animation */
@@ -65,9 +68,6 @@
     }
   }
   
-
-
-  
   /* Form Heading */
   .register h2 {
     text-align: center;
@@ -77,7 +77,45 @@
     margin-bottom: 10px;
   }
   
+  /* Input Container for Password Fields */
+  .password-container {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  
+  .password-container input {
+    width: 100%;
+    padding: 15px 45px 15px 20px; /* Right padding for eye icon */
+    font-size: 1.25em;
+    color: #8f2c24;
+    border-radius: 5px;
+    background: #fff;
+    border: none;
+    box-sizing: border-box;
+    margin-bottom: 0;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.3em;
+    color: #8f2c24;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  
   /* Input Fields */
+  .register .inputBox {
+    position: relative;
+    margin-bottom: 20px; /* Reduced margin */
+  }
+  
   .register .inputBox input {
     width: 100%;
     padding: 15px 20px;
@@ -86,7 +124,8 @@
     border-radius: 5px;
     background: #fff;
     border: none;
-    margin-bottom: 30px;
+    margin-bottom: 0; /* Remove individual margin */
+    box-sizing: border-box;
   }
   
   .register .inputBox ::placeholder {
@@ -105,10 +144,28 @@
     transition: 0.5s;
     padding: 15px 0;
     text-transform: uppercase;
+    width: 100%;
   }
   
   .register .inputBox #btn:hover {
     background: #d64c42;
+  }
+  
+  /* Validation Requirements Styling */
+  .username-requirements,
+  .password-requirements {
+    font-size: 12px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    backdrop-filter: blur(5px);
+  }
+  
+  .username-requirements div,
+  .password-requirements div {
+    margin-bottom: 5px;
+    padding: 2px 0;
   }
   
   /* Leaves animation styling */
@@ -127,8 +184,8 @@
   
   .leaves div {
     position: absolute;
-    opacity: 0;  /* Leaves start as invisible */
-    top: -10%;  /* Initially placed above the screen */
+    opacity: 0;
+    top: -10%;
     animation: animate 20s linear infinite;
   }
   
@@ -176,16 +233,77 @@
   @keyframes animate {
     0% {
       opacity: 0;
-      top: -10%;  /* Start above the screen */
+      top: -10%;
       transform: translateX(20px) rotate(0deg);
     }
     10% {
-      opacity: 1; /* Fade in */
+      opacity: 1;
     }
     100% {
-      opacity: 1; /* Keep opacity at 1 during the fall */
-      top: 110%;  /* Move past the bottom of the screen */
+      opacity: 1;
+      top: 110%;
       transform: translateX(20px) rotate(225deg);
     }
   }
   
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .register-page {
+      padding: 10px;
+    }
+    
+    .register {
+      padding: 30px 20px;
+      max-width: 95%;
+      gap: 15px;
+    }
+    
+    .register h2 {
+      font-size: 2em;
+    }
+    
+    .register .inputBox input,
+    .password-container input {
+      font-size: 1.1em;
+      padding: 12px 40px 12px 15px;
+    }
+    
+    .register .inputBox #btn {
+      font-size: 1.1em;
+      padding: 12px 0;
+    }
+    
+    .username-requirements,
+    .password-requirements {
+      font-size: 11px;
+      padding: 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .register {
+      padding: 25px 15px;
+      gap: 12px;
+    }
+    
+    .register h2 {
+      font-size: 1.8em;
+    }
+    
+    .register .inputBox input,
+    .password-container input {
+      font-size: 1em;
+      padding: 10px 35px 10px 12px;
+    }
+    
+    .toggle-password {
+      font-size: 1.2em;
+      right: 12px;
+    }
+    
+    .username-requirements,
+    .password-requirements {
+      font-size: 10px;
+      padding: 6px;
+    }
+  }
